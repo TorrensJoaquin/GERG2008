@@ -47,6 +47,7 @@ let GERG={
     herr:'',
 }
 let x=Array(22).fill(0);
+let CalculateButton;
 let itau=1;
 let idel=0;
 let ar=zeros([3,3]);
@@ -60,6 +61,9 @@ function setup(){
     fill(255,255,255);
     createCanvas(400, 400).position(250,40);
     x[1]=0.94; x[3]=0.05; x[20]=0.01;
+    CalculateButton = createButton('Calculate');
+    CalculateButton.position(700, 15);
+    CalculateButton.mousePressed(CalculateGERG2008);
     CreateTheInputs();
 }
 function RunGERG2008(){
@@ -88,9 +92,6 @@ function draw() {
     aux=aux+15;
     text('Density: '+ GERG.Density.toFixed(3) + ' mol/l',10,aux);
     text('Density: '+ Detail.Density.toFixed(3) + ' mol/l',230,aux);
-    aux=aux+15;
-    text('Pressure: '+ GERG.Pressure.toFixed(0) + ' kPa',10,aux);
-    text('Pressure: '+ Detail.Pressure.toFixed(0) + ' kPa',230,aux);
     aux=aux+15;
     text('Compressibility Factor: '+ GERG.CompressibilityFactor.toFixed(2),10,aux);
     text('Compressibility Factor: '+ Detail.CompressibilityFactor.toFixed(2),230,aux);
@@ -136,7 +137,7 @@ function draw() {
         text('Errors Found: '+ Detail.herr,250,aux);
     }
 }
-function mouseClicked(){
+function CalculateGERG2008(){
     UploadTheInputs();
     RunGERG2008();
     RunDetail();
