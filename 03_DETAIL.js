@@ -278,7 +278,7 @@ let a0=Array(2+1).fill(0);
   W = Math.sqrt(W);
   Kappa = Math.pow(W , 2) * Mm / (RT * 1000 * Z);
   d2PdTD = 0;
-  return[P, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, A];
+  return[Mm, P, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, A];
 }
 
 
