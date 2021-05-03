@@ -129,7 +129,7 @@ let GERG={
     dPdDsave = RGERG * T * (1 + 2 * ar[0][1] + ar[0][2]);
     return([P,Z]);
   },
-  DensityGERG(iFlag,T,P,x){
+  CalculateDensity(iFlag,T,P,x){
     //Sub DensityGERG(iFlag, T, P, x, D, ierr, herr)
     //Calculate density as a function of temperature and pressure.  This is an iterative routine that calls PressureGERG
     //to find the correct state point.  Generally only 6 iterations at most are required.
@@ -250,7 +250,7 @@ let GERG={
     function GoToConverged(){
       //If requested, check to see if point is possibly 2-phase
       if (iFlag > 0) {
-        [ Mm, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, A]=GERG.PropertiesGERG(T, D, x);
+        [ Mm, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, A]=GERG.CalculateProperties(T, D, x);
         //PropertiesGERG(T, D, x, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa);
         if (PP <= 0 || dPdD <= 0 || d2PdTD <= 0){GoToDError()};
         if (Cv <= 0 || Cp <= 0 || W <= 0){GoToDError()};
@@ -259,7 +259,7 @@ let GERG={
       return [ D, ierr, herr];
     }
   },
-  PropertiesGERG(T,D,x){
+  CalculateProperties(T,D,x){
   //Sub PropertiesGERG(T, D, x, P, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, Optional A)
   //Calculate thermodynamic properties as a function of temperature and density.
   //If the density is not known, call subroutine DensityGERG first with the known values of pressure and temperature.

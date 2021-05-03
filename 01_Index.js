@@ -19,8 +19,8 @@ function setup(){
     CreateTheInputs();
 }
 function RunGERG2008(){
-    [GERG.Density,GERG.ierr,GERG.herr]=GERG.DensityGERG(iFlag,GERG.Temperature,GERG.Pressure,x);
-    [GERG.MolarMass,GERG.Pressure,GERG.CompressibilityFactor,GERG.dPdD,GERG.d2PdD2,GERG.d2PdTD,GERG.dPdT,GERG.U,GERG.H,GERG.S,GERG.Cv,GERG.Cp,GERG.SpeedOfSound,GERG.G,GERG.JouleThomson,GERG.Kappa,GERG.A]=GERG.PropertiesGERG(GERG.Temperature,GERG.Density,x);
+    [GERG.Density,GERG.ierr,GERG.herr]=GERG.CalculateDensity(iFlag,GERG.Temperature,GERG.Pressure,x);
+    [GERG.MolarMass,GERG.Pressure,GERG.CompressibilityFactor,GERG.dPdD,GERG.d2PdD2,GERG.d2PdTD,GERG.dPdT,GERG.U,GERG.H,GERG.S,GERG.Cv,GERG.Cp,GERG.SpeedOfSound,GERG.G,GERG.JouleThomson,GERG.Kappa,GERG.A]=GERG.CalculateProperties(GERG.Temperature,GERG.Density,x);
 }
 function RunDetail(){
     [Detail.Density,Detail.ierr,Detail.herr]=Detail.DensityDetail(Detail.Temperature,Detail.Pressure,x);
@@ -128,6 +128,7 @@ function CreateTheInputs(){
     inpMethane.size(31,13);
     inpMethane.position(aux[0],aux[1]);
     createP('Methane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
@@ -135,6 +136,7 @@ function CreateTheInputs(){
     inpNitrogen.size(31,13);
     inpNitrogen.position(aux[0],aux[1]);
     createP('Nitrogen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;   
 
@@ -142,6 +144,7 @@ function CreateTheInputs(){
     inpCarbonDioxide.size(31,13);
     inpCarbonDioxide.position(aux[0],aux[1]);
     createP('Carbon Dioxide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
@@ -149,6 +152,7 @@ function CreateTheInputs(){
     inpEthane.size(31,13);
     inpEthane.position(aux[0],aux[1]);
     createP('Ethane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
@@ -156,6 +160,7 @@ function CreateTheInputs(){
     inpPropane.size(31,13);
     inpPropane.position(aux[0],aux[1]);
     createP('Propane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
@@ -163,6 +168,7 @@ function CreateTheInputs(){
     inpIsoButane.size(31,13);
     inpIsoButane.position(aux[0],aux[1]);
     createP('IsoButane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
@@ -170,6 +176,7 @@ function CreateTheInputs(){
     inpnButane.size(31,13);
     inpnButane.position(aux[0],aux[1]);
     createP('nButane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
@@ -177,6 +184,7 @@ function CreateTheInputs(){
     inpIsopentane.size(31,13);
     inpIsopentane.position(aux[0],aux[1]);
     createP('Isopentane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -184,6 +192,7 @@ function CreateTheInputs(){
     inpnPentane.size(31,13);
     inpnPentane.position(aux[0],aux[1]);
     createP('nPentane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -191,6 +200,7 @@ function CreateTheInputs(){
     inpnHexane.size(31,13);
     inpnHexane.position(aux[0],aux[1]);
     createP('nHexane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -198,6 +208,7 @@ function CreateTheInputs(){
     inpnHeptane.size(31,13);
     inpnHeptane.position(aux[0],aux[1]);
     createP('nHeptane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -205,6 +216,7 @@ function CreateTheInputs(){
     inpnOctane.size(31,13);
     inpnOctane.position(aux[0],aux[1]);
     createP('nOctane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -212,6 +224,7 @@ function CreateTheInputs(){
     inpnNonane.size(31,13);
     inpnNonane.position(aux[0],aux[1]);
     createP('nNonane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -219,6 +232,7 @@ function CreateTheInputs(){
     inpnDecane.size(31,13);
     inpnDecane.position(aux[0],aux[1]);
     createP('nDecane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -226,6 +240,7 @@ function CreateTheInputs(){
     inpHydrogen.size(31,13);
     inpHydrogen.position(aux[0],aux[1]);
     createP('Hydrogen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -233,6 +248,7 @@ function CreateTheInputs(){
     inpOxygen.size(31,13);
     inpOxygen.position(aux[0],aux[1]);
     createP('Oxygen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -240,6 +256,7 @@ function CreateTheInputs(){
     inpCarbonMonoxide.size(31,13);
     inpCarbonMonoxide.position(aux[0],aux[1]);
     createP('Carbon Monoxide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -247,6 +264,7 @@ function CreateTheInputs(){
     inpWater.size(31,13);
     inpWater.position(aux[0],aux[1]);
     createP('Water: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -254,6 +272,7 @@ function CreateTheInputs(){
     inpHydrogenSulfide.size(31,13);
     inpHydrogenSulfide.position(aux[0],aux[1]);
     createP('Hydrogen Sulfide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -261,6 +280,7 @@ function CreateTheInputs(){
     inpHelium.size(31,13);
     inpHelium.position(aux[0],aux[1]);
     createP('Helium: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
@@ -268,6 +288,7 @@ function CreateTheInputs(){
     inpArgon.size(31,13);
     inpArgon.position(aux[0],aux[1]);
     createP('Argon: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
