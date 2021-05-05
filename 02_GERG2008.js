@@ -149,9 +149,9 @@ let GERG={
     //     D - Density (mol/l)
     let D=0;
     //  ierr - Error number (0 indicates no error)
-    let ierr;
+    let ierr = 0;
     //  herr - Error message if ierr is not equal to zero
-    let herr;
+    let herr = '';
     let Mm;
     let nFail;
     let iFail;
@@ -180,8 +180,6 @@ let GERG={
     let JT;
     let Kappa;
     let PP;
-    ierr = 0;
-    herr = '';
     nFail = 0;
     iFail = 0;
     if(P < Epsilon) {D=0;return[D,ierr,herr]}
@@ -189,7 +187,7 @@ let GERG={
     [Tcx, Dcx]=GERG.PseudoCriticalPointGERG(x);
     if (D > -Epsilon){
       D = P / RGERG / T;        //Ideal gas estimate for vapor phase
-      if(iFlag = 2){D=Dcx*3};   //Initial estimate for liquid phase
+      if(iFlag == 2){D=Dcx*3};  //Initial estimate for liquid phase
     }else{
       D = Math.abs(D);          //If D<0, then use as initial estimate
     }
@@ -201,11 +199,11 @@ let GERG={
         iFail = 0;
         if(nFail > 2){GoToDError()}
         nFail = nFail + 1;
-        if (nFail = 1){
+        if (nFail == 1){
           D = Dcx * 3;    //If vapor phase search fails, look for root in liquid region
-        }else if(nFail = 2){
+        }else if(nFail == 2){
           D = Dcx * 2.5;  //If liquid phase search fails, look for root between liquid and critical regions
-        }else if(nFail = 3){
+        }else if(nFail == 3){
           D = Dcx * 2;    //If search fails, look for root in critical region
         }
         vlog = -Math.log(D)
@@ -213,7 +211,7 @@ let GERG={
       D = Math.exp(-vlog);
       [P2,Z]=GERG.PressureGERG( T, D, x);
       //PressureGERG(T, D, x, P2, Z)
-      if (dPdDsave<Epsilon || P2<Epsilon){
+      if (dPdDsave < Epsilon || P2 < Epsilon){
         //Current state is 2-phase, try locating a different state that is single phase
         vinc = 0.1;
         if(D > Dcx){vinc = -0.1};
@@ -229,9 +227,9 @@ let GERG={
         vlog = vlog - vdiff;
         if(Math.abs(vdiff) < tolr){
           //Check to see if state is possibly 2-phase, and if so restart
-          if (dPdDsave < 0){
+          if(dPdDsave < 0){
             iFail = 1;
-            }else{
+          }else{
             D = Math.exp(-vlog);
             GoToConverged();
           }
@@ -252,73 +250,73 @@ let GERG={
       if (iFlag > 0) {
         [ Mm, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, A]=GERG.CalculateProperties(T, D, x);
         //PropertiesGERG(T, D, x, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa);
-        if (PP <= 0 || dPdD <= 0 || d2PdTD <= 0){GoToDError()};
-        if (Cv <= 0 || Cp <= 0 || W <= 0){GoToDError()};
+        if(PP <= 0 || dPdD <= 0 || d2PdTD <= 0){GoToDError()};
+        if(Cv <= 0 || Cp <= 0 || W <= 0){GoToDError()};
         return[ D, ierr, herr];
       }
       return [ D, ierr, herr];
     }
   },
   CalculateProperties(T,D,x){
-  //Sub PropertiesGERG(T, D, x, P, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, Optional A)
-  //Calculate thermodynamic properties as a function of temperature and density.
-  //If the density is not known, call subroutine DensityGERG first with the known values of pressure and temperature.
-  //Many of the formulas below do not appear in Part 2 of AGA 8, but rather in Part 1, which uses a dimensional Helmholtz equation with more direct formulas for quick calculation.
-  //Inputs;
-  //     T - Temperature (K)
-  //     D - Density (mol/l)
-  //   x() - Composition (mole fraction)
-  //Outputs;
-  //     P - Pressure (kPa)
-  let P;
-  //     Z - Compressibility factor
-  let Z;
-  //  dPdD - First derivative of pressure with respect to density at constant temperature [kPa/(mol/l)]
-  let dPdD;
-  //d2PdD2 - Second derivative of pressure with respect to density at constant temperature [kPa/(mol/l)^2]
-  let dPdD2;
-  //d2PdTD - Second derivative of pressure with respect to temperature and density [kPa/(mol/l)/K]
-  let d2PdTD;
-  //  dPdT - First derivative of pressure with respect to temperature at constant density (kPa/K)
-  let dPdT;
-  //     U - Internal energy (J/mol)
-  let U;
-  //     H - Enthalpy (J/mol)
-  let H;
-  //     S - Entropy [J/(mol-K)]
-  let S;
-  //    Cv - Isochoric heat capacity [J/(mol-K)]
-  let Cv;
-  //    Cp - Isobaric heat capacity [J/(mol-K)]
-  let Cp;
-  //     W - Speed of sound (m/s)
-  let W;
-  //     G - Gibbs energy (J/mol)
-  let G;
-  //    JT - Joule-Thomson coefficient (K/kPa)
-  let JT;
-  // Kappa - Isentropic Exponent
-  let Kappa;
-  //     A - Helmholtz energy (J/mol)
-  let A;
-  let a0=Array(3).fill(0);
-  let ar=zeros([3, 3]);
-  let Mm;
-  let R;
-  let RT;
-  //Calculate molar mass
-  Mm=GERG.MolarMassGERG(x);
-  //Calculate the ideal gas Helmholtz energy, and its first and second derivatives with respect to temperature.
-  a0=GERG.Alpha0GERG(T, D, x);
-  //Calculate the real gas Helmholtz energy, and its derivatives with respect to temperature and/or density.
-  ar=GERG.AlpharGERG(1, 0, T, D, x);
-  R = RGERG;
-  RT = R * T;
-  Z = 1 + ar[0][1];
-  P = D * RT * Z;
-  dPdD = RT * (1 + 2 * ar[0][1] + ar[0][2]);
-  dPdT = D * R * (1 + ar[0][1] - ar[1][1]);
-  d2PdTD = R * (1 + 2 * ar[0][1] + ar[0][2] - 2 * ar[1][1] - ar[1][2]);
+    //Sub PropertiesGERG(T, D, x, P, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, Optional A)
+    //Calculate thermodynamic properties as a function of temperature and density.
+    //If the density is not known, call subroutine DensityGERG first with the known values of pressure and temperature.
+    //Many of the formulas below do not appear in Part 2 of AGA 8, but rather in Part 1, which uses a dimensional Helmholtz equation with more direct formulas for quick calculation.
+    //Inputs;
+    //     T - Temperature (K)
+    //     D - Density (mol/l)
+    //   x() - Composition (mole fraction)
+    //Outputs;
+    //     P - Pressure (kPa)
+    let P;
+    //     Z - Compressibility factor
+    let Z;
+    //  dPdD - First derivative of pressure with respect to density at constant temperature [kPa/(mol/l)]
+    let dPdD;
+    //d2PdD2 - Second derivative of pressure with respect to density at constant temperature [kPa/(mol/l)^2]
+    let dPdD2;
+    //d2PdTD - Second derivative of pressure with respect to temperature and density [kPa/(mol/l)/K]
+    let d2PdTD;
+    //  dPdT - First derivative of pressure with respect to temperature at constant density (kPa/K)
+    let dPdT;
+    //     U - Internal energy (J/mol)
+    let U;
+    //     H - Enthalpy (J/mol)
+    let H;
+    //     S - Entropy [J/(mol-K)]
+    let S;
+    //    Cv - Isochoric heat capacity [J/(mol-K)]
+    let Cv;
+    //    Cp - Isobaric heat capacity [J/(mol-K)]
+    let Cp;
+    //     W - Speed of sound (m/s)
+    let W;
+    //     G - Gibbs energy (J/mol)
+    let G;
+    //    JT - Joule-Thomson coefficient (K/kPa)
+    let JT;
+    // Kappa - Isentropic Exponent
+    let Kappa;
+    //     A - Helmholtz energy (J/mol)
+    let A;
+    let a0=Array(3).fill(0);
+    let ar=zeros([3, 3]);
+    let Mm;
+    let R;
+    let RT;
+    //Calculate molar mass
+    Mm=GERG.MolarMassGERG(x);
+    //Calculate the ideal gas Helmholtz energy, and its first and second derivatives with respect to temperature.
+    a0=GERG.Alpha0GERG(T, D, x);
+    //Calculate the real gas Helmholtz energy, and its derivatives with respect to temperature and/or density.
+    ar=GERG.AlpharGERG(1, 0, T, D, x);
+    R = RGERG;
+    RT = R * T;
+    Z = 1 + ar[0][1];
+    P = D * RT * Z;
+    dPdD = RT * (1 + 2 * ar[0][1] + ar[0][2]);
+    dPdT = D * R * (1 + ar[0][1] - ar[1][1]);
+    d2PdTD = R * (1 + 2 * ar[0][1] + ar[0][2] - 2 * ar[1][1] - ar[1][2]);
     A = RT * (a0[0] + ar[0][0]);
     G = RT * (1 + ar[0][1] + a0[0] + ar[0][0]);
     U = RT * (a0[1] + ar[1][0]);
@@ -359,11 +357,11 @@ let GERG={
     let icheck;
     //Check to see if a component fraction has changed.  If x is the same as the previous call, then exit.
     icheck = 0;
-    for (let i = 1; i <= NcGERG; i++){
+    for (i = 1; i <= NcGERG; i++){
       if (Math.abs(x[i] - xold[i]) > 0.0000001){icheck = 1}
       xold[i] = x[i];
     }
-    if (icheck = 0){
+    if (icheck == 0){
       Dr = Drold;
       Tr = Trold;
       return [Tr, Dr];
@@ -374,10 +372,10 @@ let GERG={
     Dr = 0;
     Vr = 0;
     Tr = 0;
-    for (let i = 1; i <= NcGERG; i++){
+    for (i = 1; i <= NcGERG; i++){
       if (x[i] > Epsilon){
         F = 1;
-        for (j = i; i <= NcGERG; i++){
+        for (j = i; j <= NcGERG; j++){
           if (x[j] > Epsilon){
             xij = F * (x[i] * x[j]) * (x[i] + x[j]);
             Vr = Vr + xij * gvij[i][j] / (bvij[i][j] * x[i] + x[j]);
@@ -642,7 +640,7 @@ let GERG={
     return [Tcx, Dcx];
   },
   //The following routine must be called once before any other routine.
-  SetupGERG(){
+  Setup(){
     //Initialize all the constants and parameters in the GERG-2008 model.
     //Some values are modified for calculations that do not depend on T, D, and x in order to speed up the program.
     let i;
@@ -751,8 +749,8 @@ let GERG={
     Tc[21] = 150.687;
     //Exponents in pure fluid equations
     for (let i = 1 ; i <= MaxFlds; i++){
-      Vc3[i] = 1 / Math.pow(Dc[i],(o13 / 2));
-      Tc2[i] = Math.sqrt[Tc[i]];
+      Vc3[i] = 1 / Math.pow(Dc[i],o13) / 2;
+      Tc2[i] = Math.sqrt(Tc[i]);
       coik[i][1] = 0;  doik[i][1] = 1;  toik[i][1] = 0.25;
       coik[i][2] = 0;  doik[i][2] = 1;  toik[i][2] = 1.125;
       coik[i][3] = 0;  doik[i][3] = 1;  toik[i][3] = 1.5;
@@ -794,7 +792,6 @@ let GERG={
         coik[i][24] = 6; doik[i][24] = 7; toik[i][24] = 16;
       }
     }
-
     //Coefficients of pure fluid equations
     //Methane
     noik[1][1] = 0.57335704239162;
@@ -1211,17 +1208,15 @@ let GERG={
     fij[5][6] = -0.0551609771024 //Propane-Isobutane
     fij[5][7] = 0.0312572600489  //Propane-n-Butane
     fij[6][7] = -0.0551240293009 //Isobutane-n-Butane
-
-      //Model numbers for binary mixtures with no excess functions (mn=-1)
-      for (i = 1 ; i<= MaxFlds; i++){
-        mNumb[i][i] = -1;
-        for (j = i + 1 ; j<= MaxFlds; j++){
-          fij[j][i] = fij[i][j];
-        mNumb[i][j] = -1;
+    //Model numbers for binary mixtures with no excess functions (mn=-1)
+    for (i = 1 ; i<= MaxFlds; i++){
+      mNumb[i][i] = -1;
+      for (j = i + 1 ; j<= MaxFlds; j++){
+        fij[j][i] = fij[i][j];
+        mNumb[i][j] = -1;  
         mNumb[j][i] = -1;
       }
     }
-
     //Model numbers for excess functions, 10 is for generalized equation
     mNumb[1][2] = 3;
     mNumb[1][3] = 4;
@@ -1238,7 +1233,6 @@ let GERG={
     mNumb[5][6] = 10;
     mNumb[5][7] = 10;
     mNumb[6][7] = 10;
-
     //Ideal gas parameters
     n0i[1][3] = 4.00088;  n0i[1][4] = 0.76315;  n0i[1][5] = 0.0046;   n0i[1][6] = 8.74432;  n0i[1][7] = -4.46921; n0i[1][1] = 29.83843397;  n0i[1][2] = -15999.69151
     n0i[2][3] = 3.50031;  n0i[2][4] = 0.13732;  n0i[2][5] = -0.1466;  n0i[2][6] = 0.90066;  n0i[2][7] = 0;        n0i[2][1] = 17.56770785;  n0i[2][2] = -2801.729072
@@ -1284,7 +1278,7 @@ let GERG={
     th0i[20][4] = 0;       th0i[20][5] = 0;       th0i[20][6] = 0;       th0i[20][7] = 0;
     th0i[21][4] = 0;       th0i[21][5] = 0;       th0i[21][6] = 0;       th0i[21][7] = 0;
 
-    GERG.Setup2GERG()
+    GERG.Setup2()
 
     for (i = 1 ; i<=MaxMdl; i++){
       for (j = 1 ; j<=MaxTrmM; j++){
@@ -1322,7 +1316,7 @@ let GERG={
       n0i[i][1] = n0i[i][1] - Math.log(d0);
     }
   },
-  Setup2GERG(){
+  Setup2(){
   //The GERG setup routines are split in two to avoid "procedure too large" errors.
 
     //Mixture parameters for reducing variables

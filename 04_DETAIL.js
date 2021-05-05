@@ -283,7 +283,7 @@ let Detail={
       if(Math.abs(x[i] - xold[i]) > 0.0000001){icheck = 1};
       xold[i] = x[i];
     }
-    if(icheck = 0){return}
+    if(icheck == 0){return}
     K3 = 0;
     U = 0;
     G = 0;
@@ -329,9 +329,9 @@ let Detail={
     Q2 = Math.pow(Q , 2);
     for(n = 13; n<= 58; n++){
       Csn[n] = an[n] * Math.pow(U , un[n]);
-      if (gn[n] = 1){Csn[n] = Csn[n] * G}
-      if (qn[n] = 1){Csn[n] = Csn[n] * Q2}
-      if (fn[n] = 1){Csn[n] = Csn[n] * F}
+      if (gn[n] == 1){Csn[n] = Csn[n] * G}
+      if (qn[n] == 1){Csn[n] = Csn[n] * Q2}
+      if (fn[n] == 1){Csn[n] = Csn[n] * F}
     }
     return;
   },
@@ -513,7 +513,7 @@ let Detail={
     return ar;
   },
   //The following routine must be called once before any other routine.
-  SetupDetail(){
+  Setup(){
     //Initialize all the constants and parameters in the DETAIL model.
     //Some values are modified for calculations that do not depend on T, D, and x in order to speed up the program.
 
@@ -951,11 +951,11 @@ let Detail={
       for(j = i; j <= MaxFlds; j++){
         for(n = 1 ; n <= 18; n++){
           Bsnij = 1;
-          if (gn[n] = 1){Bsnij = Gij[i][j] * (Gi[i] + Gi[j]) / 2};
-          if (qn[n] = 1){Bsnij = Bsnij * Qi[i] * Qi[j]};
-          if (fn[n] = 1){Bsnij = Bsnij * Fi[i] * Fi[j]};
-          if (sn[n] = 1){Bsnij = Bsnij * Si[i] * Si[j]};
-          if (wn[n] = 1){Bsnij = Bsnij * Wi[i] * Wi[j]};
+          if (gn[n] == 1){Bsnij = Gij[i][j] * (Gi[i] + Gi[j]) / 2};
+          if (qn[n] == 1){Bsnij = Bsnij * Qi[i] * Qi[j]};
+          if (fn[n] == 1){Bsnij = Bsnij * Fi[i] * Fi[j]};
+          if (sn[n] == 1){Bsnij = Bsnij * Si[i] * Si[j]};
+          if (wn[n] == 1){Bsnij = Bsnij * Wi[i] * Wi[j]};
           Bsnij2[i][j][n] = an[n] * (Eij[i][j] * Math.sqrt(Ei[i] * Math.pow(Ei[j])) , un[n]) * Math.pow((Ki[i] * Ki[j]), 1.5) * Bsnij;
         }
         Kij5[i][j] = (Math.pow(Kij[i][j], 5) - 1) * Ki25[i] * Ki25[j];

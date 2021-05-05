@@ -334,7 +334,7 @@ function Bmix(T,xGrs,HCH){
   //Calculate Bmix and Cmix
     for (i = 1 ; i<= 3;i++){
         for (j = i ; j <= 3; j++){
-            if (i = j){
+            if (i == j){
                 B = B + BB[i][i] * Math.pow(xGrs[i], 2);
             }else{
                 B = B + 2 * BB[i][j] * xGrs[i] * xGrs[j];
@@ -401,7 +401,7 @@ function GrossMethod1(Th,Td,Pd,xGrs,Gr,Hv){
         [B, C, ierr, herr]=Bmix(Td, xGrs, HCH);
         if(ierr > 0) {return}
         Zd = 1 + B * Pd / RGross / Td;
-        if (Math.abs(Zold - Zd) < 0.0000001){break}
+        if(Math.abs(Zold - Zd) < 0.0000001){break}
     }
 }
 
@@ -430,7 +430,7 @@ function GrossMethod2(Th,Td,Pd,xGrs,Gr){
     let G1;let G2;let B;let C;let xN2;let xCO2;
     ierr = 0;
     herr = "";
-    if (Gr < Epsilon){ierr = 1; herr = "Invalid input for relative density"; return};
+    if(Gr < Epsilon){ierr = 1; herr = "Invalid input for relative density"; return};
 
     xN2 = xGrs[2];
     xCO2 = xGrs[3];
