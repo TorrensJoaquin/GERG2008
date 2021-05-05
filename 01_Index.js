@@ -18,19 +18,19 @@ function setup(){
     Detail.Setup();
     fill(255,255,255);
     createCanvas(510, 485).position(250,40);
-    //x[1]=0.94; x[3]=0.05; x[20]=0.01;
-    x=[0, 0.7040000000000001, 0, 0, 0.1195, 0.1247, 0.0165, 0, 0, 0.0182, 0.012, 0.0044, 0.0005, 0, 0, 0, 0, 0, 0, 0, 0.01, 0];
+    x[1]=0.94; x[3]=0.05; x[20]=0.01;
     CalculateButton = createButton('Calculate');
     CalculateButton.position(700, 15);
     CalculateButton.mousePressed(CalculateGERG2008);
     CreateTheInputs();
     CalculateGERG2008();
-    BoundaryOfDrawing();
 };
 function BoundaryOfDrawing(){
     //Find the smallest and biggest value of D
     [Drawing.D.Max,Drawing.ErrorHandling.ierr,Drawing.ErrorHandling.herr]=GERG.CalculateDensity(1,Drawing.T.Min,Drawing.P.Max,x);
     [Drawing.D.Min,Drawing.ErrorHandling.ierr,Drawing.ErrorHandling.herr]=GERG.CalculateDensity(1,Drawing.T.Max,Drawing.P.Min,x);
+    text('Density: '+ Drawing.D.Max.toFixed(2) + 'mol/l',20,ChartOffset+20);
+    text('Pressure: '+ Drawing.P.Max.toFixed(0) + ' kPa',width - 120, height -20);
 };
 function RunGERG2008(){
     [GERG.Density,GERG.ierr,GERG.herr]=GERG.CalculateDensity(iFlag,GERG.Temperature,GERG.Pressure,x);
@@ -74,6 +74,9 @@ function draw(){
 };
 function DrawGERGResults(){
     background(0);
+    Drawing.P.Current=Drawing.P.Min;
+    Drawing.P.Old=Drawing.P.Min;
+    Drawing.D.Old=Drawing.D.Min;
     push();
     textSize(20);
     textStyle(BOLD);
@@ -160,6 +163,7 @@ function CalculateGERG2008(){
         x[20]=parseFloat(inpHelium.value())/100;
         x[21]=parseFloat(inpArgon.value())/100;
     }
+    BoundaryOfDrawing();
 };
 function CreateTheInputs(){
     let InitialX=180;
