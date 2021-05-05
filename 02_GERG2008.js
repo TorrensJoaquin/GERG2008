@@ -180,6 +180,7 @@ let GERG={
     let JT;
     let Kappa;
     let PP;
+    let it=1;
     nFail = 0;
     iFail = 0;
     if(P < Epsilon) {D=0;return[D,ierr,herr]}
@@ -193,7 +194,7 @@ let GERG={
     }
     plog = Math.log(P);
     vlog = -Math.log(D);
-    for(let it = 1; it <= 50; it++){
+    for(it = 1; it <= 50; it++){
       if (vlog < -7 || vlog > 100 || it == 20 || it == 30 || it == 40 || iFail == 1){
         //Current state is bad or iteration is taking too long.  Restart with completely different initial state
         iFail = 0;
@@ -252,6 +253,7 @@ let GERG={
         //PropertiesGERG(T, D, x, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa);
         if(PP <= 0 || dPdD <= 0 || d2PdTD <= 0){GoToDError()};
         if(Cv <= 0 || Cp <= 0 || W <= 0){GoToDError()};
+        it = 51;
         return[ D, ierr, herr];
       }
       return [ D, ierr, herr];

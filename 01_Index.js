@@ -12,7 +12,7 @@ let Drawing={
     T:{Max:373.15, Min:250, Current:200, Old:200, PrintedCurrent:0, PrintedOld:0},
     D:{Max:0, Min:0, Current:0, Old:0, PrintedCurrent:0, PrintedOld:0},
     ErrorHandling:{ierr:0, herr:''},
-};
+}
 function setup(){
     GERG.Setup();
     Detail.Setup();
@@ -24,22 +24,22 @@ function setup(){
     CalculateButton.mousePressed(CalculateGERG2008);
     CreateTheInputs();
     CalculateGERG2008();
-};
+}
 function BoundaryOfDrawing(){
     //Find the smallest and biggest value of D
     [Drawing.D.Max,Drawing.ErrorHandling.ierr,Drawing.ErrorHandling.herr]=GERG.CalculateDensity(1,Drawing.T.Min,Drawing.P.Max,x);
     [Drawing.D.Min,Drawing.ErrorHandling.ierr,Drawing.ErrorHandling.herr]=GERG.CalculateDensity(1,Drawing.T.Max,Drawing.P.Min,x);
     text('Density: '+ Drawing.D.Max.toFixed(2) + 'mol/l',20,ChartOffset+20);
     text('Pressure: '+ Drawing.P.Max.toFixed(0) + ' kPa',width - 120, height -20);
-};
+}
 function RunGERG2008(){
     [GERG.Density,GERG.ierr,GERG.herr]=GERG.CalculateDensity(iFlag,GERG.Temperature,GERG.Pressure,x);
     [GERG.MolarMass,GERG.Pressure,GERG.CompressibilityFactor,GERG.dPdD,GERG.d2PdD2,GERG.d2PdTD,GERG.dPdT,GERG.U,GERG.H,GERG.S,GERG.Cv,GERG.Cp,GERG.SpeedOfSound,GERG.G,GERG.JouleThomson,GERG.Kappa,GERG.A]=GERG.CalculateProperties(GERG.Temperature,GERG.Density,x);
-};
+}
 function RunDetail(){
     [Detail.Density,Detail.ierr,Detail.herr]=Detail.DensityDetail(Detail.Temperature,Detail.Pressure,x);
     [Detail.MolarMass,Detail.Pressure,Detail.CompressibilityFactor,Detail.dPdD,Detail.d2PdD2,Detail.d2PdTD,Detail.dPdT,Detail.U,Detail.H,Detail.S,Detail.Cv,Detail.Cp,Detail.SpeedOfSound,Detail.G,Detail.JouleThomson,Detail.Kappa,Detail.A]=Detail.PropertiesDetail(Detail.Temperature,Detail.Density,x);
-};
+}
 function draw(){
     push();
     stroke(255,255,255);
@@ -67,11 +67,13 @@ function draw(){
                 //point(Drawing.D.PrintedOld,Drawing.P.PrintedOld+ChartOffset);
                 Drawing.P.Old=Drawing.P.Current;
                 Drawing.D.Old=Drawing.D.Current;
+            }else{
+                console.log(Drawing.ErrorHandling.herr);
             }
         }
     }
     pop();
-};
+}
 function DrawGERGResults(){
     background(0);
     Drawing.P.Current=Drawing.P.Min;
@@ -127,7 +129,7 @@ function DrawGERGResults(){
         text('Errors Found: '+ GERG.herr,10,aux);
         text('Errors Found: '+ Detail.herr,250,aux);
     }
-};
+}
 function CalculateGERG2008(){
     UploadTheInputs();
     RunGERG2008();
@@ -164,7 +166,7 @@ function CalculateGERG2008(){
         x[21]=parseFloat(inpArgon.value())/100;
     }
     BoundaryOfDrawing();
-};
+}
 function CreateTheInputs(){
     let InitialX=180;
     let InitialY=10;
@@ -353,7 +355,7 @@ function CreateTheInputs(){
     inpTemperature.position(590,15);
     createP('Temperature: ').position(500,0).style('color:white');
     createP(' Kelvin').position(643,0).style('color:white');
-};
+}
 function RunFuelGas(){
     FuelGas.CalorificValue=x[1]*9.97+x[2]*0+x[3]*0+x[4]*17.87+x[5]*25.89+x[6]*34.05+x[7]*34.3+x[8]*43.51+x[9]*45.51+x[10]*52.67+x[11]*54.67+x[12]*54.67+x[13]*54.67+x[14]*54.67+x[15]*2.99+x[16]*0+x[17]*3.51+x[18]*0+x[19]*0+x[20]*0+x[21]*0;
-};
+}

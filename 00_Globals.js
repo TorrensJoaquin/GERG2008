@@ -68,8 +68,7 @@ let MMiDetail=Array(MaxFlds+1).fill(0);
 let K3=0;
 function Tanh(xx){
     return (Math.exp(xx) - Math.exp(-xx)) / (Math.exp(xx) + Math.exp(-xx));
-}
-  
+} 
 function Sinh(xx){
     return (Math.exp(xx) - Math.exp(-xx)) / 2;
 }
