@@ -243,6 +243,7 @@ let GERG={
       ierr = 1;
       herr = 'Calculation failed to converge in GERG method, ideal gas density returned.'
       D = P / RGERG / T;
+      it = 51;
       return [D,ierr,herr];
     }
     //Iteration converged
