@@ -5,6 +5,9 @@ let idel=0;
 let ar=zeros([3,3]);
 let iFlag=1;
 const ChartOffset=230;
+const CanvasLeterColor=[0,0,0]
+const TextColor='Black'
+const DotColor=[200,0,0]
 let FuelGas={CalorificValue:0,AirFuelRelationship:0,Density:0};
 let Drawing={
     array:{x:0,y:0},
@@ -16,11 +19,10 @@ let Drawing={
 function setup(){
     GERG.Setup();
     Detail.Setup();
-    fill(255,255,255);
-    createCanvas(510, 485).position(250,40);
+    createCanvas(510, 485).position(250,120);
     x[1]=0.94; x[3]=0.05; x[20]=0.01;
     CalculateButton = createButton('Calculate');
-    CalculateButton.position(700, 15);
+    CalculateButton.position(600, 20);
     CalculateButton.mousePressed(CalculateGERG2008);
     CreateTheInputs();
     CalculateGERG2008();
@@ -42,14 +44,13 @@ function RunDetail(){
 }
 function draw(){
     push();
-    stroke(255,255,255);
-    strokeWeight(5);
+    stroke(DotColor);
+    strokeWeight(10);
     point(map(GERG.Density,Drawing.D.Min,Drawing.D.Max,0,width),map(GERG.Pressure,Drawing.P.Min,Drawing.P.Max,height-ChartOffset,0)+ChartOffset);
+    pop();
     if(Drawing.T.Current<Drawing.T.Max){
         Drawing.P.Current=Drawing.P.Current+10;
         [Drawing.D.Current,Drawing.ErrorHandling.ierr,Drawing.ErrorHandling.herr]=GERG.CalculateDensity(1,Drawing.T.Current,Drawing.P.Current,x);
-        stroke(200,200,200);
-        strokeWeight(1);
         Drawing.P.PrintedOld=map(Drawing.P.Old,Drawing.P.Min,Drawing.P.Max,height-ChartOffset,0);
         Drawing.T.PrintedOld=map(Drawing.T.Old,Drawing.T.Min,Drawing.T.Max,height-ChartOffset,0);
         Drawing.D.PrintedOld=map(Drawing.D.Old,Drawing.D.Min,Drawing.D.Max,0,width);
@@ -72,20 +73,23 @@ function draw(){
             }
         }
     }
-    pop();
 }
 function DrawGERGResults(){
-    background(0);
+    clear();
     Drawing.P.Current=Drawing.P.Min;
     Drawing.P.Old=Drawing.P.Min;
     Drawing.D.Old=Drawing.D.Min;
     push();
     textSize(20);
     textStyle(BOLD);
+    fill(CanvasLeterColor);
     text('GERG 2008',20,25);
     text('DETAIL',250,25);
     pop();
+    textSize(14);
+    textStyle(NORMAL);
     let aux=45;
+    fill(CanvasLeterColor);
     text('Molar Mass: '+ GERG.MolarMass.toFixed(2) + ' g/mol',10,aux);
     text('Molar Mass: '+ Detail.MolarMass.toFixed(2) + ' g/mol',230,aux);
     aux=aux+15;
@@ -164,12 +168,41 @@ function CalculateGERG2008(){
         x[19]=parseFloat(inpHydrogenSulfide.value())/100;
         x[20]=parseFloat(inpHelium.value())/100;
         x[21]=parseFloat(inpArgon.value())/100;
+        //Correction to 100%
+        let SumOfComponents=0;
+        for(let i=1; i <= 21; i++){
+            SumOfComponents=SumOfComponents+x[i];
+        }
+        for(let i=1; i <= 21; i++){
+            x[i]=x[i]/SumOfComponents;
+        }
+        inpMethane.value((x[1]*100).toString());
+        inpNitrogen.value((x[2]*100).toString());
+        inpCarbonDioxide.value((x[3]*100).toString());
+        inpEthane.value((x[4]*100).toString());
+        inpPropane.value((x[5]*100).toString());
+        inpIsoButane.value((x[6]*100).toString());
+        inpnButane.value((x[7]*100).toString());
+        inpIsopentane.value((x[8]*100).toString());    
+        inpnPentane.value((x[9]*100).toString());
+        inpnHexane.value((x[10]*100).toString());
+        inpnHeptane.value((x[11]*100).toString());
+        inpnOctane.value((x[12]*100).toString());
+        inpnNonane.value((x[13]*100).toString());
+        inpnDecane.value((x[14]*100).toString());
+        inpHydrogen.value((x[15]*100).toString());
+        inpOxygen.value((x[16]*100).toString());
+        inpCarbonMonoxide.value((x[17]*100).toString());
+        inpWater.value((x[18]*100).toString());
+        inpHydrogenSulfide.value((x[19]*100).toString());
+        inpHelium.value((x[20]*100).toString());
+        inpArgon.value((x[21]*100).toString());
     }
     BoundaryOfDrawing();
 }
 function CreateTheInputs(){
     let InitialX=180;
-    let InitialY=10;
+    let InitialY=80;
     let SeparationX=0;
     let SeparationY=25;
     let aux=[InitialX,InitialY];
@@ -179,182 +212,182 @@ function CreateTheInputs(){
     inpMethane=createInput((x[1]*100).toString());          //1 - Methane
     inpMethane.size(31,13);
     inpMethane.position(aux[0],aux[1]);
-    createP('Methane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Methane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:Black'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
     inpNitrogen=createInput((x[2]*100).toString());         //2 - Nitrogen
     inpNitrogen.size(31,13);
     inpNitrogen.position(aux[0],aux[1]);
-    createP('Nitrogen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Nitrogen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;   
 
     inpCarbonDioxide=createInput((x[3]*100).toString());    //3 - CarbonDioxide
     inpCarbonDioxide.size(31,13);
     inpCarbonDioxide.position(aux[0],aux[1]);
-    createP('Carbon Dioxide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Carbon Dioxide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
     inpEthane=createInput((x[4]*100).toString());           //4 - Ethane
     inpEthane.size(31,13);
     inpEthane.position(aux[0],aux[1]);
-    createP('Ethane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Ethane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
     inpPropane=createInput((x[5]*100).toString());          //5 - Propane
     inpPropane.size(31,13);
     inpPropane.position(aux[0],aux[1]);
-    createP('Propane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Propane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
     inpIsoButane=createInput((x[6]*100).toString());        //6 - IsoButane
     inpIsoButane.size(31,13);
     inpIsoButane.position(aux[0],aux[1]);
-    createP('IsoButane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('IsoButane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
     inpnButane=createInput((x[7]*100).toString());          //7 - nButane
     inpnButane.size(31,13);
     inpnButane.position(aux[0],aux[1]);
-    createP('nButane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('nButane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
     inpIsopentane=createInput((x[8]*100).toString());       //8 - Isopentane
     inpIsopentane.size(31,13);
     inpIsopentane.position(aux[0],aux[1]);
-    createP('Isopentane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Isopentane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpnPentane=createInput((x[9]*100).toString());         //9 - nPentane
     inpnPentane.size(31,13);
     inpnPentane.position(aux[0],aux[1]);
-    createP('nPentane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('nPentane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpnHexane=createInput((x[10]*100).toString());         //10 - nHexane
     inpnHexane.size(31,13);
     inpnHexane.position(aux[0],aux[1]);
-    createP('nHexane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('nHexane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpnHeptane=createInput((x[11]*100).toString());        //11 - nHeptane
     inpnHeptane.size(31,13);
     inpnHeptane.position(aux[0],aux[1]);
-    createP('nHeptane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('nHeptane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpnOctane=createInput((x[12]*100).toString());         //12 - nOctane
     inpnOctane.size(31,13);
     inpnOctane.position(aux[0],aux[1]);
-    createP('nOctane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('nOctane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpnNonane=createInput((x[13]*100).toString());         //13 - nNonane
     inpnNonane.size(31,13);
     inpnNonane.position(aux[0],aux[1]);
-    createP('nNonane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('nNonane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpnDecane=createInput((x[14]*100).toString());         //14 - nDecane
     inpnDecane.size(31,13);
     inpnDecane.position(aux[0],aux[1]);
-    createP('nDecane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('nDecane: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpHydrogen=createInput((x[15]*100).toString());        //15 - Hydrogen
     inpHydrogen.size(31,13);
     inpHydrogen.position(aux[0],aux[1]);
-    createP('Hydrogen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Hydrogen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpOxygen=createInput((x[16]*100).toString());          //16 - Oxygen
     inpOxygen.size(31,13);
     inpOxygen.position(aux[0],aux[1]);
-    createP('Oxygen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Oxygen: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpCarbonMonoxide=createInput((x[17]*100).toString());  //17 - CarbonMonoxide
     inpCarbonMonoxide.size(31,13);
     inpCarbonMonoxide.position(aux[0],aux[1]);
-    createP('Carbon Monoxide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Carbon Monoxide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpWater=createInput((x[18]*100).toString());           //18 - Water
     inpWater.size(31,13);
     inpWater.position(aux[0],aux[1]);
-    createP('Water: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Water: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpHydrogenSulfide=createInput((x[19]*100).toString()); //19 - HydrogenSulfide
     inpHydrogenSulfide.size(31,13);
     inpHydrogenSulfide.position(aux[0],aux[1]);
-    createP('Hydrogen Sulfide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Hydrogen Sulfide: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpHelium=createInput((x[20]*100).toString());          //20 - Helium
     inpHelium.size(31,13);
     inpHelium.position(aux[0],aux[1]);
-    createP('Helium: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Helium: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
     
     inpArgon=createInput((x[21]*100).toString());           //21 - Argon
     inpArgon.size(31,13);
     inpArgon.position(aux[0],aux[1]);
-    createP('Argon: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:white');
-    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:white');
+    createP('Argon: ').position(aux[0]-CorrectionForTextX,aux[1]-CorrectionForTextY).style('color:'+TextColor);
+    createP(' %').position(aux[0]+40,aux[1]-CorrectionForTextY).style('color:'+TextColor);
     aux[0]=aux[0]+SeparationX;
     aux[1]=aux[1]+SeparationY;
 
     inpPressure=createInput(GERG.Pressure.toString());
     inpPressure.size(41,13);
-    inpPressure.position(365,15);
-    createP('Pressure: ').position(300,0).style('color:white');
-    createP(' kPa').position(419,0).style('color:white');
+    inpPressure.position(365,InitialY+15);
+    createP('Pressure: ').position(300,InitialY).style('color:'+TextColor);
+    createP(' kPa').position(419,InitialY).style('color:'+TextColor);
 
     inpTemperature=createInput(GERG.Temperature.toString());
     inpTemperature.size(41,13);
-    inpTemperature.position(590,15);
-    createP('Temperature: ').position(500,0).style('color:white');
-    createP(' Kelvin').position(643,0).style('color:white');
+    inpTemperature.position(590,InitialY+15);
+    createP('Temperature: ').position(500,InitialY).style('color:'+TextColor);
+    createP(' Kelvin').position(643,InitialY).style('color:'+TextColor);
 }
 function RunFuelGas(){
     FuelGas.CalorificValue=x[1]*9.97+x[2]*0+x[3]*0+x[4]*17.87+x[5]*25.89+x[6]*34.05+x[7]*34.3+x[8]*43.51+x[9]*45.51+x[10]*52.67+x[11]*54.67+x[12]*54.67+x[13]*54.67+x[14]*54.67+x[15]*2.99+x[16]*0+x[17]*3.51+x[18]*0+x[19]*0+x[20]*0+x[21]*0;
