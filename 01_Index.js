@@ -162,7 +162,7 @@ function draw(){
         strokeWeight(0.1);
         for(let i=0; i <= 60; i++){
             stroke(random(225,255),random(230,200),random(230,200));
-            line(Zone0.maxX-random(10,30),Zone00.maxY,Zone0.maxX-random(17.5,22.5),Zone0.maxY);
+            line(Zone0.maxX-random(5,35),Zone00.maxY,Zone0.maxX-random(17.5,22.5),Zone0.maxY);
             stroke(random(215,255),random(215,255),0,150);
             line(Zone1.minX,Zone1.maxY-5,Zone1.minX + (Zone1.maxX-Zone1.minX)/2,Zone1.maxY+random(-15,5));
             line(Zone1.minX + (Zone1.maxX-Zone1.minX)/2,Zone1.maxY+random(-15,5),Zone1.maxX,Zone1.maxY-5);
@@ -192,13 +192,12 @@ function draw(){
     //Zone Zero Zero -> Where the parameters are seted
     //Zone I -> Where the numerical results are shown
     //Zone II -> Where the Chart is shown results are shown
-    push();
-    stroke(DotColor);
-    strokeWeight(10);
-    point(map(GERG.Density,Drawing.D.Min,Drawing.D.Max,Zone2.minX,Zone2.maxX),map(GERG.Pressure,Drawing.P.Min,Drawing.P.Max,Zone2.maxY,Zone2.minY));
-    mouseMoved();
+    //push();
+    //stroke(DotColor);
+    //strokeWeight(10);
+    //point(map(GERG.Density,Drawing.D.Min,Drawing.D.Max,Zone2.minX,Zone2.maxX),map(GERG.Pressure,Drawing.P.Min,Drawing.P.Max,Zone2.maxY,Zone2.minY));
+    //pop();
     RadioOfTheChart.position(map(GERG.Density,Drawing.D.Min,Drawing.D.Max,Zone2.minX,Zone2.maxX)-3.5,map(GERG.Pressure,Drawing.P.Min,Drawing.P.Max,Zone2.maxY,Zone2.minY)-1);
-    pop();
     if(Drawing.T.Current<Drawing.T.Max){
         Drawing.P.Current=Drawing.P.Current+10;
         [Drawing.D.Current,Drawing.ErrorHandling.ierr,Drawing.ErrorHandling.herr]=GERG.CalculateDensity(1,Drawing.T.Current,Drawing.P.Current,x);
