@@ -27,7 +27,7 @@ let Zone2={//Zone of the Drawings
 let Drawing={
     array:{x:0,y:0},
     P:{Max:2000, Min:50, Current:30, Old:30, PrintedCurrent:0, PrintedOld:0},
-    T:{Max:373.15, Min:250, Current:200, Old:200, PrintedCurrent:0, PrintedOld:0},
+    T:{Max:473.15, Min:250, Current:200, Old:200, PrintedCurrent:0, PrintedOld:0},
     D:{Max:0, Min:0, Current:0, Old:0, PrintedCurrent:0, PrintedOld:0},
     ErrorHandling:{ierr:0, herr:''},
     minX:0,maxX:300,minY:200,maxY:800,
@@ -57,13 +57,13 @@ function CreateInputsIn00(){
     let aux=15;
     CalculateButton = createButton('Calculate');
     CalculateButton.position(Zone00.minX, Zone00.minY+ aux);
-    CalculateButton.size(150,20);
+    CalculateButton.size(150,23);
     CalculateButton.mousePressed(CalculateGERG2008);
     aux=aux+30;
 
     ClearButton = createButton('Clear chromatography');
     ClearButton.position(Zone00.minX, Zone00.minY+ aux);
-    ClearButton.size(150,20);
+    ClearButton.size(150,23);
     ClearButton.mousePressed(ClearInputX);
     aux=aux+30;
 
