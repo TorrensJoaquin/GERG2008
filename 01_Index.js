@@ -105,8 +105,6 @@ function BoundaryOfDrawing(){
     //Find the smallest and biggest value of D
     [Drawing.D.Max,Drawing.ErrorHandling.ierr,Drawing.ErrorHandling.herr]=GERG.CalculateDensity(1,Drawing.T.Min,Drawing.P.Max,x);
     [Drawing.D.Min,Drawing.ErrorHandling.ierr,Drawing.ErrorHandling.herr]=GERG.CalculateDensity(1,Drawing.T.Max,Drawing.P.Min,x);
-    text('Pressure: '+ Drawing.P.Max.toFixed(0) + ' kPa', Zone2.minX+20, Zone2.minY+20);
-    text('Density: '+ Drawing.D.Max.toFixed(2) + 'mol/l', Zone2.maxX-120, Zone2.maxY-20);
 }
 function RunGERG2008(){
     [GERG.Density,GERG.ierr,GERG.herr]=GERG.CalculateDensity(iFlag,GERG.Temperature,GERG.Pressure,x);
@@ -200,6 +198,8 @@ function draw(){
         //logo
         image(logo, 0, 0);
         //
+        text('Pressure: '+ Drawing.P.Max.toFixed(0) + ' kPa', Zone2.minX+20, Zone2.minY+20);
+        text('Density: '+ Drawing.D.Max.toFixed(2) + 'mol/l', Zone2.maxX-120, Zone2.maxY-20);    
         DrawGERGResults();
         Drawing.IsBackgroundAlreadyDrawn=true;
     }
