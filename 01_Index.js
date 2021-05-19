@@ -50,15 +50,15 @@ function setup(){
 function CreateTheMagicBox(){
     InputFromXLS.InputTextArea=select('#PasteXLS');
     InputFromXLS.InputTextArea.input(InputIsActivated);
-    InputFromXLS.InputTextArea.position(660,40);
+    InputFromXLS.InputTextArea.position(670,40);
     push();
-    createP('You can paste the').position(550,32).style('font-size', '10px');
-    createP('chromatografy from your').position(550,43).style('font-size', '10px');
-    createP('spreedsheet in here.').position(550,54).style('font-size', '10px');
-    createP('2 rows or columns').position(550,65).style('font-size', '10px');
-    createP('1st the labels').position(550,76).style('font-size', '10px');
-    createP('2nd the compositions').position(550,87).style('font-size', '10px');
-    createP('several aliases supported').position(550,98).style('font-size', '10px');
+    createP('You can paste the').position(540,32).style('font-size', '10px');
+    createP('chromatography from your').position(540,43).style('font-size', '10px');
+    createP('spreadsheet in here.').position(540,54).style('font-size', '10px');
+    createP('2 rows or columns').position(540,65).style('font-size', '10px');
+    createP('1st the labels').position(540,76).style('font-size', '10px');
+    createP('2nd the compositions').position(540,87).style('font-size', '10px');
+    createP('several aliases supported').position(540,98).style('font-size', '10px');
     pop();
 }
 function CreateTheRadio(){
@@ -86,14 +86,14 @@ function CreateInputsIn00(){
     inpPressure.size(47,13);
     inpPressure.position(Zone00.minX+95,aux);
     createP('Pressure: ').position(Zone00.minX,aux-13).style('color:'+TextColor);
-    createP(' kPa').position(Zone00.minX+155,aux-13).style('color:'+TextColor);
+    createP(' kPa').position(Zone00.minX+165,aux-13).style('color:'+TextColor);
     aux=aux+30;
 
     inpTemperature=createInput(GERG.Temperature.toString());
     inpTemperature.size(47,13);
     inpTemperature.position(Zone00.minX+95,aux);
     createP('Temperature: ').position(Zone00.minX,aux-13).style('color:'+TextColor);
-    createP(' Kelvin').position(Zone00.minX+155,aux-13).style('color:'+TextColor);
+    createP('Kelvin').position(Zone00.minX+165,aux-13).style('color:'+TextColor);
     aux=aux+30;
 
     function ClearInputX(){
