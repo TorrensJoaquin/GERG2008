@@ -45,6 +45,21 @@ function setup(){
     CreateTheRadio();
     CreateTheXInputs();
     CalculateGERG2008();
+    CreateTheMagicBox();
+}
+function CreateTheMagicBox(){
+    InputFromXLS.InputTextArea=select('#PasteXLS');
+    InputFromXLS.InputTextArea.input(InputIsActivated);
+    InputFromXLS.InputTextArea.position(660,40);
+    push();
+    createP('You can paste the').position(550,32).style('font-size', '10px');
+    createP('chromatografy from your').position(550,43).style('font-size', '10px');
+    createP('spreedsheet in here.').position(550,54).style('font-size', '10px');
+    createP('2 rows or columns').position(550,65).style('font-size', '10px');
+    createP('1st the labels').position(550,76).style('font-size', '10px');
+    createP('2nd the compositions').position(550,87).style('font-size', '10px');
+    createP('several aliases supported').position(550,98).style('font-size', '10px');
+    pop();
 }
 function CreateTheRadio(){
     RadioOfTheChart = createRadio();
@@ -297,17 +312,19 @@ function CalculateGERG2008(){
         GERG.Temperature=parseFloat(inpTemperature.value());
         Detail.Temperature=parseFloat(inpTemperature.value());
         FromDOMsToX();
-        //Correction to 100%
-        let SumOfComponents=0;
-        for(let i=1; i <= 21; i++){
-            SumOfComponents=SumOfComponents+x[i];
-        }
-        for(let i=1; i <= 21; i++){
-            x[i]=x[i]/SumOfComponents;
-        }
+        NormalizeX();
         FromXToDOMs();
     }
     Drawing.IsBackgroundAlreadyDrawn=false;
+}
+function NormalizeX(){
+    let SumOfComponents=0;
+    for(let i=1; i <= 21; i++){
+        SumOfComponents=SumOfComponents+x[i];
+    }
+    for(let i=1; i <= 21; i++){
+        x[i]=x[i]/SumOfComponents;
+    }
 }
 function FromXToDOMs(){
     inpMethane.value((x[1]*100).toString());

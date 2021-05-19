@@ -67,6 +67,7 @@ let Tun=Array(NTerms+1).fill(0);
 let MMiDetail=Array(MaxFlds+1).fill(0);
 let K3=0;
 let x=Array(22).fill(0);
+let InputFromXLS={InputTextArea:0};
 function Tanh(xx){
     return (Math.exp(xx) - Math.exp(-xx)) / (Math.exp(xx) + Math.exp(-xx));
 } 
