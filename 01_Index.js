@@ -135,6 +135,7 @@ function CreateInputsIn00(){
     aux=aux+30;
 }
 function mousePressed(){
+    if (event.type != 'mousedown') return true;   //Avoid double click problem on mobile devices.
     webButtons[0].checkIfThisClickIsForMe();
     webButtons[1].checkIfThisClickIsForMe();
     webButtons[2].checkIfThisClickIsForMe();
@@ -151,7 +152,6 @@ function mousePressed(){
     webButtons[14].checkIfThisClickIsForMe();
     webButtons[15].checkIfThisClickIsForMe();
     webButtons[16].checkIfThisClickIsForMe();
-    return false;
 }
 function draw(){
     background(255);
