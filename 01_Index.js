@@ -678,7 +678,7 @@ class WebButton {
         this.activated = !this.activated;
         this.activateMyFavoriteSon();
         if(this.WhatShouldIDoAfterYouCallMe != null){this.WhatShouldIDoAfterYouCallMe()}
-        this.AvoidDoubleClickProblemsOnMobiles = 5;
+        this.AvoidDoubleClickProblemsOnMobiles = 15;
     }
     activateMyFavoriteSon(){
         if (this.favoriteSon != null && this.activated == true){
