@@ -301,14 +301,14 @@ function RunGROSS_Method1(){
     UploadTheInputs();
     GROSS.CalculateInputs(GROSS.Temperature,GROSS.Pressure,x);
     GROSS.Pd = GROSS.Pressure;
-    GROSS.Hv = GROSS.HN;
+    GROSS.Hv = GROSS.HN*GROSS.Density;
     GROSS.Method1(GROSS.Th,GROSS.Td,GROSS.Pd,GROSS.xGrs,GROSS.Gr,GROSS.Hv);
 }
 function RunGROSS_Method2(){
     UploadTheInputs();
     GROSS.CalculateInputs(GROSS.Temperature,GROSS.Pressure,x);
     GROSS.Pd = GROSS.Pressure;
-    GROSS.Hv = GROSS.HN;
+    GROSS.Hv = GROSS.HN*GROSS.Density;
     GROSS.Method2(GROSS.Th,GROSS.Td,GROSS.Pd,GROSS.xGrs,GROSS.Gr);
 }
 function RunDetail(){
