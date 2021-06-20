@@ -23,6 +23,5 @@ Github page in the following link...
   EOs Algorithm implementations.  
 
 ## Coming Soon:  
-More attractive design.  
-GROSS 1 and 2 implementations.  
-PH, TS, TH downloadable diagrams.  
+Mixing gases properties.  
+Methane Number in js.  
