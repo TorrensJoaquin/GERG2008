@@ -354,7 +354,7 @@ function DrawGERGResults(){
     aux=aux+25;
     text('Entalphy: '+ GERG.H.toFixed(1) + ' J/mol',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Entropy: '+ GERG.S.toFixed(1) + ' J/mol',PositionOfGERGColumn,aux);
+    text('Entropy: '+ GERG.S.toFixed(1) + ' J/(mol-K)',PositionOfGERGColumn,aux);
     aux=aux+25;
     text('Cv: '+ GERG.Cv.toFixed(3) + ' J/(mol-K)',PositionOfGERGColumn,aux);
     aux=aux+25;
@@ -398,7 +398,7 @@ function DrawDetailResults(){
     aux=aux+25;
     text('Entalphy: '+ Detail.H.toFixed(1) + ' J/mol',PositionOfDetailColumn,aux);
     aux=aux+25;
-    text('Entropy: '+ Detail.S.toFixed(1) + ' J/mol',PositionOfDetailColumn,aux);
+    text('Entropy: '+ Detail.S.toFixed(1) + ' J/(mol-K)',PositionOfDetailColumn,aux);
     aux=aux+25;
     text('Cv: '+ Detail.Cv.toFixed(3) + ' J/(mol-K)',PositionOfDetailColumn,aux);
     aux=aux+25;
