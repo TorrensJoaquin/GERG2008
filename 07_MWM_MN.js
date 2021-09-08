@@ -10,12 +10,13 @@ let yMax=Array(21).fill(0);
 let yMin=Array(21).fill(0);
 let zMax=Array(21).fill(0);
 let zMin=Array(21).fill(0);
-let StandardDeviationOfTheSolver = 1;
+let StandardDeviationOfTheSolver;
 let CheckIfAnImprovementIsDoneInTheLastXMovements;
 let NAji;
 let VAji;
 let SumOfNAjiComponentsInTheTernary;
 function ReInitializeValues(){
+    StandardDeviationOfTheSolver = 1;
     CheckIfAnImprovementIsDoneInTheLastXMovements = true;
     NAji=zeros([11, 18]);
     VAji=zeros([11, 18]);
