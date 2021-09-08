@@ -11,15 +11,22 @@ let yMin=Array(21).fill(0);
 let zMax=Array(21).fill(0);
 let zMin=Array(21).fill(0);
 let StandardDeviationOfTheSolver = 1;
-let CheckIfAnImprovementIsDoneInTheLastXMovements = true;
-let NAji=zeros([11, 18]);
-let VAji=zeros([11, 18]);
-let SumOfNAjiComponentsInTheTernary=Array(19).fill(0);
+let CheckIfAnImprovementIsDoneInTheLastXMovements;
+let NAji;
+let VAji;
+let SumOfNAjiComponentsInTheTernary;
+function ReInitializeValues(){
+    CheckIfAnImprovementIsDoneInTheLastXMovements = true;
+    NAji=zeros([11, 18]);
+    VAji=zeros([11, 18]);
+    SumOfNAjiComponentsInTheTernary=Array(19).fill(0);    
+}
 //MethaneNumberMWM(60, 30, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 function MethaneNumberMWM(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
     let SimplifiedChromatografy;
     let MethaneNumberMWMWithoutInerts;
     UploadTheCoefficients();
+    ReInitializeValues();
     SimplifiedChromatografy = SimplifyChromatografy(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide);
     MethaneNumberMWMWithoutInerts = CalculateMethaneNumberMWM(SimplifiedChromatografy);
     return MethaneNumberMWMWithoutInerts + CorrectingMethaneNumberWithInerts(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide) - 100.0003;
@@ -148,7 +155,7 @@ function RandomizedNumberWithEvolutiveApproach(x, MinimumNAji, j, i){
     if (Math.floor(x / 1000) == 0){
         AuxResult = random(1);
     }else{
-        AuxResult = random(1);
+        AuxResult = random(StandardDeviationOfTheSolver) + MinimumNAji[j][i];
     }
     return AuxResult;
 }
