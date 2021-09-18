@@ -72,7 +72,6 @@ let Detail={
   JouleThomson:0,
   IsentropicExponent:0,
   A:0,
-  Kappa:0,
   ierr:0,
   herr:'',
   MolarMassDetail(x){
@@ -291,7 +290,7 @@ let Detail={
     Detail.SpeedOfSound = W;
     Detail.G = G;
     Detail.JouleThomson = JT;
-    Detail.Kappa = Kappa;
+    Detail.IsentropicExponent = Kappa;
     Detail.A = A;
   },
   //The following routines are low-level routines that should not be called outside of this code.
