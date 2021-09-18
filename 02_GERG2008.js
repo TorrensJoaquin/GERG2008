@@ -273,7 +273,7 @@ let GERG={
         W = GERG.SpeedOfSound;
         G = GERG.G;
         JT = GERG.JouleThomson;
-        Kappa = GERG.Kappa;
+        Kappa = GERG.IsentropicExponent;
         A = GERG.A;
             //PropertiesGERG(T, D, x, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa);
         if(PP <= 0 || dPdD <= 0 || d2PdTD <= 0){GoToDError()};
@@ -384,7 +384,7 @@ let GERG={
     GERG.SpeedOfSound = W;
     GERG.G = G;
     GERG.JouleThomson = JT;
-    GERG.Kappa = Kappa;
+    GERG.IsentropicExponent = Kappa;
     GERG.A = A;
   },
   //The following routines are low-level routines that should not be called outside of this code.
