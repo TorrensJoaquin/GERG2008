@@ -161,22 +161,29 @@ function FindTheClickedPointPD(){
         if (abs(DesiredDensity - DensityMiddle) < 0.01){
             GERG.Temperature = TemperatureMiddle;
             DrawResultOfMouseData();
+            push();
+            line(mouseX, mouseY,mouseX, 665);
+            line(78, mouseY,mouseX, mouseY);
+            noFill();
+            if(IsCircleIncreasing){
+                SizeOfCircle = SizeOfCircle + 0.1;
+            }else{
+                SizeOfCircle = SizeOfCircle - 0.1;    
+            }
+            if(SizeOfCircle > 8){IsCircleIncreasing = false}
+            if(SizeOfCircle < 0){IsCircleIncreasing = true}
+            circle(mouseX, mouseY, 3 + SizeOfCircle);
+            circle(mouseX, mouseY, 7 + SizeOfCircle);
+            circle(mouseX, mouseY, 13 + SizeOfCircle);
+            textSize(25);
+            fill(100);
+            text('Press', 5, 220);
+            text('Density',700, 700);
+            textSize(15);
+            text(GERG.Pressure.toFixed(0) + ' kPa', 5, mouseY);
+            text(DensityMiddle.toFixed(2) + ' mol/l', mouseX, 700);
+            pop();
         }
-        push();
-        line(mouseX, mouseY,mouseX, 665);
-        line(78, mouseY,mouseX, mouseY);
-        noFill();
-        if(IsCircleIncreasing){
-            SizeOfCircle = SizeOfCircle + 0.1;
-        }else{
-            SizeOfCircle = SizeOfCircle - 0.1;    
-        }
-        if(SizeOfCircle > 8){IsCircleIncreasing = false}
-        if(SizeOfCircle < 0){IsCircleIncreasing = true}
-        circle(mouseX, mouseY, 3 + SizeOfCircle);
-        circle(mouseX, mouseY, 7 + SizeOfCircle);
-        circle(mouseX, mouseY, 13 + SizeOfCircle);
-        pop();
     }
 }
 function FindTheClickedPointPV(){
@@ -203,22 +210,29 @@ function FindTheClickedPointPV(){
         if (abs(DesiredDensity - DensityMiddle) < 0.01){
             GERG.Temperature = TemperatureMiddle;
             DrawResultOfMouseData();
+            push();
+            line(mouseX, mouseY,mouseX, 665);
+            line(78, mouseY,mouseX, mouseY);
+            noFill();
+            if(IsCircleIncreasing){
+                SizeOfCircle = SizeOfCircle + 0.1;
+            }else{
+                SizeOfCircle = SizeOfCircle - 0.1;    
+            }
+            if(SizeOfCircle > 8){IsCircleIncreasing = false}
+            if(SizeOfCircle < 0){IsCircleIncreasing = true}
+            circle(mouseX, mouseY, 3 + SizeOfCircle);
+            circle(mouseX, mouseY, 7 + SizeOfCircle);
+            circle(mouseX, mouseY, 13 + SizeOfCircle);
+            textSize(25);
+            fill(100);
+            text('Press', 5, 220);
+            text('Molar Volume',700, 700);
+            textSize(15);
+            text(GERG.Pressure.toFixed(0) + ' kPa', 5, mouseY);
+            text((1 / DensityMiddle).toFixed(2) + ' l/mol', mouseX, 700);
+            pop();
         }
-        push();
-        line(mouseX, mouseY,mouseX, 665);
-        line(78, mouseY,mouseX, mouseY);
-        noFill();
-        if(IsCircleIncreasing){
-            SizeOfCircle = SizeOfCircle + 0.1;
-        }else{
-            SizeOfCircle = SizeOfCircle - 0.1;    
-        }
-        if(SizeOfCircle > 8){IsCircleIncreasing = false}
-        if(SizeOfCircle < 0){IsCircleIncreasing = true}
-        circle(mouseX, mouseY, 3 + SizeOfCircle);
-        circle(mouseX, mouseY, 7 + SizeOfCircle);
-        circle(mouseX, mouseY, 13 + SizeOfCircle);
-        pop();
     }
 }
 function FindTheClickedPointPH(){
@@ -245,22 +259,29 @@ function FindTheClickedPointPH(){
         if (abs(DesiredEntalphy - EntalphyMiddle) < 100){
             GERG.Temperature = TemperatureMiddle;
             DrawResultOfMouseData();
+            push();
+            line(mouseX, mouseY,mouseX, 665);
+            line(78, mouseY,mouseX, mouseY);
+            noFill();
+            if(IsCircleIncreasing){
+                SizeOfCircle = SizeOfCircle + 0.1;
+            }else{
+                SizeOfCircle = SizeOfCircle - 0.1;    
+            }
+            if(SizeOfCircle > 8){IsCircleIncreasing = false}
+            if(SizeOfCircle < 0){IsCircleIncreasing = true}
+            circle(mouseX, mouseY, 3 + SizeOfCircle);
+            circle(mouseX, mouseY, 7 + SizeOfCircle);
+            circle(mouseX, mouseY, 13 + SizeOfCircle);
+            textSize(25);
+            fill(100);
+            text('Press', 5, 220);
+            text('Enthalpy',700, 700);
+            textSize(15);
+            text(GERG.Pressure.toFixed(0) + ' kPa', 5, mouseY);
+            text(EntalphyMiddle.toFixed(0) + ' J/mol', mouseX, 700);
+            pop();
         }
-        push();
-        line(mouseX, mouseY,mouseX, 665);
-        line(78, mouseY,mouseX, mouseY);
-        noFill();
-        if(IsCircleIncreasing){
-            SizeOfCircle = SizeOfCircle + 0.1;
-        }else{
-            SizeOfCircle = SizeOfCircle - 0.1;    
-        }
-        if(SizeOfCircle > 8){IsCircleIncreasing = false}
-        if(SizeOfCircle < 0){IsCircleIncreasing = true}
-        circle(mouseX, mouseY, 3 + SizeOfCircle);
-        circle(mouseX, mouseY, 7 + SizeOfCircle);
-        circle(mouseX, mouseY, 13 + SizeOfCircle);
-        pop();
     }
 }
 function FindTheClickedPointTH(){
@@ -287,22 +308,29 @@ function FindTheClickedPointTH(){
         if (abs(DesiredEntalphy - EntalphyMiddle) < 100){
             GERG.Pressure = PressureMiddle;
             DrawResultOfMouseData();
+            push();
+            line(mouseX, mouseY,mouseX, 665);
+            line(78, mouseY,mouseX, mouseY);
+            noFill();
+            if(IsCircleIncreasing){
+                SizeOfCircle = SizeOfCircle + 0.1;
+            }else{
+                SizeOfCircle = SizeOfCircle - 0.1;    
+            }
+            if(SizeOfCircle > 8){IsCircleIncreasing = false}
+            if(SizeOfCircle < 0){IsCircleIncreasing = true}
+            circle(mouseX, mouseY, 3 + SizeOfCircle);
+            circle(mouseX, mouseY, 7 + SizeOfCircle);
+            circle(mouseX, mouseY, 13 + SizeOfCircle);
+            textSize(25);
+            fill(100);
+            text('Temp', 5, 220);
+            text('Enthalpy',700, 700);
+            textSize(15);
+            text(GERG.Temperature.toFixed(0) + ' K', 5, mouseY);
+            text(EntalphyMiddle.toFixed(0) + ' J/mol', mouseX, 700);
+            pop();
         }
-        push();
-        line(mouseX, mouseY,mouseX, 665);
-        line(78, mouseY,mouseX, mouseY);
-        noFill();
-        if(IsCircleIncreasing){
-            SizeOfCircle = SizeOfCircle + 0.1;
-        }else{
-            SizeOfCircle = SizeOfCircle - 0.1;    
-        }
-        if(SizeOfCircle > 8){IsCircleIncreasing = false}
-        if(SizeOfCircle < 0){IsCircleIncreasing = true}
-        circle(mouseX, mouseY, 3 + SizeOfCircle);
-        circle(mouseX, mouseY, 7 + SizeOfCircle);
-        circle(mouseX, mouseY, 13 + SizeOfCircle);
-        pop();
     }
 }
 function FindTheClickedPointTS(){
@@ -326,25 +354,32 @@ function FindTheClickedPointTS(){
                 PressureMiddle=(PressureUp+PressureDown)/2;
             }
         }
-        if (abs(DesiredEntropy - EntropyMiddle) < 100){
+        if (abs(DesiredEntropy - EntropyMiddle) < 2){
             GERG.Pressure = PressureMiddle;
             DrawResultOfMouseData();
+            push();
+            line(mouseX, mouseY,mouseX, 665);
+            line(78, mouseY,mouseX, mouseY);
+            noFill();
+            if(IsCircleIncreasing){
+                SizeOfCircle = SizeOfCircle + 0.1;
+            }else{
+                SizeOfCircle = SizeOfCircle - 0.1;    
+            }
+            if(SizeOfCircle > 8){IsCircleIncreasing = false}
+            if(SizeOfCircle < 0){IsCircleIncreasing = true}
+            circle(mouseX, mouseY, 3 + SizeOfCircle);
+            circle(mouseX, mouseY, 7 + SizeOfCircle);
+            circle(mouseX, mouseY, 13 + SizeOfCircle);
+            textSize(25);
+            fill(100);
+            text('Temp', 5, 220);
+            text('Entropy',700, 700);
+            textSize(15);
+            text(GERG.Temperature.toFixed(0) + ' K', 5, mouseY);
+            text(EntropyMiddle.toFixed(0) + ' J/mol', mouseX, 700);
+            pop();
         }
-        push();
-        line(mouseX, mouseY,mouseX, 665);
-        line(78, mouseY,mouseX, mouseY);
-        noFill();
-        if(IsCircleIncreasing){
-            SizeOfCircle = SizeOfCircle + 0.1;
-        }else{
-            SizeOfCircle = SizeOfCircle - 0.1;    
-        }
-        if(SizeOfCircle > 8){IsCircleIncreasing = false}
-        if(SizeOfCircle < 0){IsCircleIncreasing = true}
-        circle(mouseX, mouseY, 3 + SizeOfCircle);
-        circle(mouseX, mouseY, 7 + SizeOfCircle);
-        circle(mouseX, mouseY, 13 + SizeOfCircle);
-        pop();
     }
 }
 function DrawResultOfMouseData(){
