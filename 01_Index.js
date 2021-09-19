@@ -365,6 +365,8 @@ function DrawGERGResults(){
     text('Gibbs Free Energy: '+ GERG.G.toFixed(1) + ' (J/mol)',PositionOfGERGColumn,aux);
     aux=aux+25;
     text('Joule Thomson: '+ GERG.JouleThomson.toFixed(3) + ' (K/kPa)',PositionOfGERGColumn,aux);
+    aux=aux+25;
+    text('Isentropic Coefficient (kappa): '+ GERG.IsentropicExponent.toFixed(3),PositionOfGERGColumn,aux);
     if(GERG.ierr>0 || Detail.ierr>0){
         aux=aux+25;
         text('Errors Found: '+ GERG.herr,PositionOfGERGColumn,aux);
@@ -409,6 +411,8 @@ function DrawDetailResults(){
     text('Gibbs Free Energy: '+ Detail.G.toFixed(1) + ' (J/mol)',PositionOfDetailColumn,aux);
     aux=aux+25;
     text('Joule Thomson: '+ Detail.JouleThomson.toFixed(3) + ' (K/kPa)',PositionOfDetailColumn,aux);
+    aux=aux+25;
+    text('Isentropic Coefficient (kappa): '+ Detail.IsentropicExponent.toFixed(3),PositionOfDetailColumn,aux);
     if(Detail.ierr>0){
         aux=aux+25;
         text('Errors Found: '+ Detail.herr,PositionOfDetailColumn,aux);
