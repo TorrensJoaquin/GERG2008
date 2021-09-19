@@ -16,11 +16,10 @@ let NAji;
 let VAji;
 let SumOfNAjiComponentsInTheTernary;
 function ReInitializeValues(){
-    StandardDeviationOfTheSolver = 1;
+    StandardDeviationOfTheSolver = 5;
     CheckIfAnImprovementIsDoneInTheLastXMovements = true;
     NAji=zeros([11, 18]);
     VAji=zeros([11, 18]);
-    SumOfNAjiComponentsInTheTernary=Array(19).fill(0);    
 }
 //MethaneNumberMWM(60, 30, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 function MethaneNumberMWM(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
@@ -134,6 +133,7 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
         }
     }
     //Create The second stage of FractionOfComponentInsideTernary -> NAji.
+    SumOfNAjiComponentsInTheTernary=Array(19).fill(0);
     for(let i = 0; i<=18; i++){
         for(let j = 0; j<=11; j++){
             if(IsThisComponentPresentInThisTernaryHotOnes[j][i]){
@@ -154,7 +154,7 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
 function RandomizedNumberWithEvolutiveApproach(x, MinimumNAji, j, i){
     let AuxResult;
     if (Math.floor(x / 1000) == 0){
-        AuxResult = random(1);
+        AuxResult = random(StandardDeviationOfTheSolver);
     }else{
         AuxResult = random(StandardDeviationOfTheSolver) + MinimumNAji[j][i];
     }
