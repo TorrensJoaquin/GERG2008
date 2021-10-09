@@ -306,7 +306,7 @@ let GERG={
     //  dPdD - First derivative of pressure with respect to density at constant temperature [kPa/(mol/l)]
     let dPdD;
     //d2PdD2 - Second derivative of pressure with respect to density at constant temperature [kPa/(mol/l)^2]
-    let dPdD2;
+    let d2PdD2;
     //d2PdTD - Second derivative of pressure with respect to temperature and density [kPa/(mol/l)/K]
     let d2PdTD;
     //  dPdT - First derivative of pressure with respect to temperature at constant density (kPa/K)
