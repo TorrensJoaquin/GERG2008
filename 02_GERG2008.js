@@ -102,7 +102,7 @@ let GERG={
     //    Mm - Molar mass (g/mol)
     let Mm = 0;
     for (let i = 1; i <= NcGERG; i++){Mm = Mm + x[i] * MMiGERG[i]}
-    GERG.Mm=Mm;
+    GERG.MolarMass=Mm;
   },
   PressureGERG( T, D, x){
     //Sub PressureGERG(T, D, x, P, Z)
@@ -338,7 +338,7 @@ let GERG={
     let RT;
     //Calculate molar mass
     GERG.MolarMassGERG(x);
-    Mm = GERG.Mm;
+    Mm = GERG.MolarMass;
     //Calculate the ideal gas Helmholtz energy, and its first and second derivatives with respect to temperature.
     a0=GERG.Alpha0GERG(T, D, x);
     //Calculate the real gas Helmholtz energy, and its derivatives with respect to temperature and/or density.
