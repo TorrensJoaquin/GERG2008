@@ -44,7 +44,6 @@ function CalculateDrawedData(){
         for(let j=0; j<=99; j++){
             GERGDraw.Pressure = PXToDraw[j];
             GERGDraw.Temperature = TYToDraw[i];
-            GERGDraw.Density = - GERGDraw.Density;
             GERGDraw.CalculateDensity(iFlag);
             if (GERGDraw.ierr != 1){
                 DZToDraw[i][j] = GERGDraw.Density;
@@ -53,16 +52,15 @@ function CalculateDrawedData(){
             }
             GERGDraw.Pressure = PYToDraw[i];
             GERGDraw.Temperature = TXToDraw[j];
-            GERGDraw.Density = - GERGDraw.Density;
             GERGDraw.CalculateDensity(iFlag);
             if (GERGDraw.ierr != 1){
                 HZ2ToDraw[i][j] = GERGDraw.H;
                 SZ2ToDraw[i][j] = GERGDraw.S;
             }
-            if(SZ2ToDraw[i][j]< minimumValueOfS){minimumValueOfS=SZ2ToDraw[i][j]}
-            if(SZ2ToDraw[i][j]> maximumValueOfS){maximumValueOfS=SZ2ToDraw[i][j]}
-            if(HZ2ToDraw[i][j]< minimumValueOfH){minimumValueOfH=HZ2ToDraw[i][j]}
-            if(HZ2ToDraw[i][j]> maximumValueOfH){maximumValueOfH=HZ2ToDraw[i][j]}
+            if(SZ2ToDraw[i][j] < minimumValueOfS){minimumValueOfS=SZ2ToDraw[i][j]}
+            if(SZ2ToDraw[i][j] > maximumValueOfS){maximumValueOfS=SZ2ToDraw[i][j]}
+            if(HZ2ToDraw[i][j] < minimumValueOfH){minimumValueOfH=HZ2ToDraw[i][j]}
+            if(HZ2ToDraw[i][j] > maximumValueOfH){maximumValueOfH=HZ2ToDraw[i][j]}
         }
     }
     //Debugger part
@@ -74,7 +72,7 @@ function CalculateDrawedData(){
                 HZToDraw[i][j] = HZToDraw[i][j-1];
             }
         }
-        for(let j=0; j<=98; j++){
+        for(let j=0; j<100; j++){
             if(HZToDraw[i][j+1] > HZToDraw[i][j]){HZToDraw[i][j+1] = HZToDraw[i][j]}
         }
         for(let j=99; j>=1; j--){
@@ -85,7 +83,7 @@ function CalculateDrawedData(){
 }
 function DrawPD(){
     for(let j=0; j<10; j++){
-        for(let i=0; i<100; i++){
+        for(let i=0; i<99; i++){
             let xi = map(PXToDraw[i],PXToDraw[0],PXToDraw[99],DownRightCorner[0],UpLeftCorner[0], true);
             let yi = map(DZToDraw[j][i],DZToDraw[0][99],DZToDraw[9][0],DownRightCorner[1],UpLeftCorner[1], true);
             let xj = map(PXToDraw[i+1],PXToDraw[0],PXToDraw[99],DownRightCorner[0],UpLeftCorner[0], true);
@@ -149,7 +147,6 @@ function FindTheClickedPointPD(){
         let DensityMiddle=0;
         GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERGDraw.Density = -GERGDraw.Density;
             GERGDraw.Temperature = TemperatureMiddle;
             GERGDraw.CalculateDensity(iFlag);
             DensityMiddle = GERGDraw.Density;
@@ -200,7 +197,6 @@ function FindTheClickedPointPV(){
         let DensityMiddle=0;
         GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERGDraw.Density = -GERGDraw.Density;
             GERGDraw.Temperature = TemperatureMiddle;
             GERGDraw.CalculateDensity(iFlag);
             DensityMiddle = GERGDraw.Density;
@@ -251,7 +247,6 @@ function FindTheClickedPointPH(){
         let EntalphyMiddle=0;
         GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERGDraw.Density = -GERGDraw.Density;
             GERGDraw.Temperature = TemperatureMiddle;
             GERGDraw.CalculateDensity(iFlag);
             EntalphyMiddle = GERGDraw.H;
@@ -302,7 +297,6 @@ function FindTheClickedPointTH(){
         let EntalphyMiddle=0;
         GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERGDraw.Density = -GERGDraw.Density;
             GERGDraw.Pressure = PressureMiddle;
             GERGDraw.CalculateDensity(iFlag);
             EntalphyMiddle = GERGDraw.H;
@@ -353,7 +347,6 @@ function FindTheClickedPointTS(){
         let EntropyMiddle=0;
         GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERGDraw.Density = -GERGDraw.Density;
             GERGDraw.Pressure = PressureMiddle;
             GERGDraw.CalculateDensity(iFlag);
             EntropyMiddle = GERGDraw.S;
@@ -433,7 +426,7 @@ function DrawResultOfMouseData(){
     text('Joule Thomson: '+ GERGDraw.JouleThomson.toFixed(3) + ' (K/kPa)',PositionOfGERGColumn,aux);
     aux=aux+25;
     text('Isentropic Coefficient (kappa): '+ GERGDraw.IsentropicExponent.toFixed(3),PositionOfGERGColumn,aux);
-    if(GERGDraw.ierr>0 || Detail.ierr>0){
+    if(GERGDraw.ierr>0){
         aux=aux+25;
         text('Errors Found: '+ GERGDraw.herr,PositionOfGERGColumn,aux);
     }

@@ -4,7 +4,7 @@ let webButtons=[];
 let SumOfComponents;
 let GERG = new FlowStream();
 let GERGDraw = new FlowStream();
-let iFlag=1;
+let iFlag = 1;
 const CanvasLeterColor=[0,0,0];
 const TextColor='White';
 function preload(){

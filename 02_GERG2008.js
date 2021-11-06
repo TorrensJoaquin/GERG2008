@@ -977,6 +977,7 @@ class FlowStream {
     //Outputs;
     //     D - Density (mol/l)
     //  ierr - Error number (0 indicates no error)
+    this.ierr = 0;
     //  herr - Error message if ierr is not equal to zero
     let nFail = 0;
     let iFail = 0;
