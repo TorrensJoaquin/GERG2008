@@ -2,6 +2,8 @@
 let Background=[];
 let webButtons=[];
 let SumOfComponents;
+let GERG = new FlowStream();
+let GERGDraw = new FlowStream();
 let iFlag=1;
 const CanvasLeterColor=[0,0,0];
 const TextColor='White';
@@ -32,7 +34,7 @@ function setup(){
     x[1]=0.94; x[3]=0.05; x[20]=0.01;
     CreateTheXInputs();
     ButtonsConfiguration();
-    GERG.Setup();
+    SetupFlowStreamSimulator(); //This is the GERG setup. Is object oriented due to a new proyect.
     Detail.Setup();
     GROSS.Setup();
     createCanvas(1360, 768);
@@ -295,7 +297,8 @@ function TellMeWichScreenAmISeen(){
 }
 function RunGERG2008(){
     UploadTheInputs();
-    GERG.CalculateDensity(iFlag,GERG.Temperature,GERG.Pressure,x);
+    GERG.x = x;
+    GERG.CalculateDensity(iFlag);
 }
 function RunGROSS_Method1(){
     UploadTheInputs();

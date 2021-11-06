@@ -96,3 +96,10 @@ function zeros(dimensions) {
     }
     return array;
 }
+function zeros2( DimensionA, DimensionB){
+    let array = Array(DimensionA);
+    for (let i = 0; i < DimensionA; ++i){
+        array[i] = Array(DimensionB).fill(0);
+    }
+    return array;
+}

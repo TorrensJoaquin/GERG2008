@@ -39,24 +39,25 @@ function CalculateDrawedData(){
     minimumValueOfS=SZ2ToDraw[9][0];
     maximumValueOfH=SZ2ToDraw[0][99];
     minimumValueOfH=SZ2ToDraw[9][0];
+    GERGDraw.x = x;
     for(let i=0; i<=9; i++){
         for(let j=0; j<=99; j++){
-            GERG.Pressure = PXToDraw[j];
-            GERG.Temperature = TYToDraw[i];
-            GERG.Density = - GERG.Density;
-            GERG.CalculateDensity(iFlag,GERG.Temperature,GERG.Pressure,x);
-            if (GERG.ierr != 1){
-                DZToDraw[i][j] = GERG.Density;
-                VZToDraw[i][j] = 1 / (GERG.Density + 0.00002);
-                HZToDraw[i][j] = GERG.H;
+            GERGDraw.Pressure = PXToDraw[j];
+            GERGDraw.Temperature = TYToDraw[i];
+            GERGDraw.Density = - GERGDraw.Density;
+            GERGDraw.CalculateDensity(iFlag);
+            if (GERGDraw.ierr != 1){
+                DZToDraw[i][j] = GERGDraw.Density;
+                VZToDraw[i][j] = 1 / (GERGDraw.Density + 0.00002);
+                HZToDraw[i][j] = GERGDraw.H;
             }
-            GERG.Pressure = PYToDraw[i];
-            GERG.Temperature = TXToDraw[j];
-            GERG.Density = - GERG.Density;
-            GERG.CalculateDensity(iFlag,GERG.Temperature,GERG.Pressure,x);
-            if (GERG.ierr != 1){
-                HZ2ToDraw[i][j] = GERG.H;
-                SZ2ToDraw[i][j] = GERG.S;
+            GERGDraw.Pressure = PYToDraw[i];
+            GERGDraw.Temperature = TXToDraw[j];
+            GERGDraw.Density = - GERGDraw.Density;
+            GERGDraw.CalculateDensity(iFlag);
+            if (GERGDraw.ierr != 1){
+                HZ2ToDraw[i][j] = GERGDraw.H;
+                SZ2ToDraw[i][j] = GERGDraw.S;
             }
             if(SZ2ToDraw[i][j]< minimumValueOfS){minimumValueOfS=SZ2ToDraw[i][j]}
             if(SZ2ToDraw[i][j]> maximumValueOfS){maximumValueOfS=SZ2ToDraw[i][j]}
@@ -139,17 +140,19 @@ function DrawTS(){
 }
 function FindTheClickedPointPD(){
     if(mouseX < DownRightCorner[1] && mouseY < DownRightCorner[0] && mouseX > UpLeftCorner[1] && mouseY > UpLeftCorner[0]){
-        GERG.Pressure = map(mouseY,DownRightCorner[0],UpLeftCorner[0],PXToDraw[0],PXToDraw[99]);
+        GERGDraw.Pressure = map(mouseY,DownRightCorner[0],UpLeftCorner[0],PXToDraw[0],PXToDraw[99]);
         let DesiredDensity=map(mouseX,DownRightCorner[1],UpLeftCorner[1],DZToDraw[0][99],DZToDraw[9][0]);
         //Start Binary Search
         let TemperatureUp=TYToDraw[9];
         let TemperatureDown=TYToDraw[0];
         let TemperatureMiddle=(TemperatureUp+TemperatureDown)/2;
         let DensityMiddle=0;
+        GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERG.Density = -GERG.Density;
-            GERG.CalculateDensity(iFlag,TemperatureMiddle,GERG.Pressure,x);
-            DensityMiddle = GERG.Density;
+            GERGDraw.Density = -GERGDraw.Density;
+            GERGDraw.Temperature = TemperatureMiddle;
+            GERGDraw.CalculateDensity(iFlag);
+            DensityMiddle = GERGDraw.Density;
             if (DesiredDensity < DensityMiddle){
                 TemperatureDown=TemperatureMiddle;
                 TemperatureMiddle=(TemperatureUp+TemperatureDown)/2;
@@ -159,7 +162,7 @@ function FindTheClickedPointPD(){
             }
         }
         if (abs(DesiredDensity - DensityMiddle) < 0.01){
-            GERG.Temperature = TemperatureMiddle;
+            GERGDraw.Temperature = TemperatureMiddle;
             DrawResultOfMouseData();
             push();
             line(mouseX, mouseY,mouseX, 665);
@@ -180,7 +183,7 @@ function FindTheClickedPointPD(){
             text('Press', 5, 220);
             text('Density',700, 700);
             textSize(15);
-            text(GERG.Pressure.toFixed(0) + ' kPa', 5, mouseY);
+            text(GERGDraw.Pressure.toFixed(0) + ' kPa', 5, mouseY);
             text(DensityMiddle.toFixed(2) + ' mol/l', mouseX, 700);
             pop();
         }
@@ -188,17 +191,19 @@ function FindTheClickedPointPD(){
 }
 function FindTheClickedPointPV(){
     if(mouseX < DownRightCorner[1] && mouseY < DownRightCorner[0] && mouseX > UpLeftCorner[1] && mouseY > UpLeftCorner[0]){
-        GERG.Pressure = map(mouseY,DownRightCorner[0],UpLeftCorner[0],PXToDraw[0],PXToDraw[99]);
+        GERGDraw.Pressure = map(mouseY,DownRightCorner[0],UpLeftCorner[0],PXToDraw[0],PXToDraw[99]);
         let DesiredDensity=1 / map(mouseX,DownRightCorner[1],UpLeftCorner[1],VZToDraw[9][0],VZToDraw[0][99]);
         //Start Binary Search
         let TemperatureUp=TYToDraw[9];
         let TemperatureDown=TYToDraw[0];
         let TemperatureMiddle=(TemperatureUp+TemperatureDown)/2;
         let DensityMiddle=0;
+        GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERG.Density = -GERG.Density;
-            GERG.CalculateDensity(iFlag,TemperatureMiddle,GERG.Pressure,x);
-            DensityMiddle = GERG.Density;
+            GERGDraw.Density = -GERGDraw.Density;
+            GERGDraw.Temperature = TemperatureMiddle;
+            GERGDraw.CalculateDensity(iFlag);
+            DensityMiddle = GERGDraw.Density;
             if (DesiredDensity < DensityMiddle){
                 TemperatureDown=TemperatureMiddle;
                 TemperatureMiddle=(TemperatureUp+TemperatureDown)/2;
@@ -208,7 +213,7 @@ function FindTheClickedPointPV(){
             }
         }
         if (abs(DesiredDensity - DensityMiddle) < 0.01){
-            GERG.Temperature = TemperatureMiddle;
+            GERGDraw.Temperature = TemperatureMiddle;
             DrawResultOfMouseData();
             push();
             line(mouseX, mouseY,mouseX, 665);
@@ -229,7 +234,7 @@ function FindTheClickedPointPV(){
             text('Press', 5, 220);
             text('Molar Volume',700, 700);
             textSize(15);
-            text(GERG.Pressure.toFixed(0) + ' kPa', 5, mouseY);
+            text(GERGDraw.Pressure.toFixed(0) + ' kPa', 5, mouseY);
             text((1 / DensityMiddle).toFixed(2) + ' l/mol', mouseX, 700);
             pop();
         }
@@ -237,17 +242,19 @@ function FindTheClickedPointPV(){
 }
 function FindTheClickedPointPH(){
     if(mouseX < DownRightCorner[1] && mouseY < DownRightCorner[0] && mouseX > UpLeftCorner[1] && mouseY > UpLeftCorner[0]){
-        GERG.Pressure = map(mouseY,DownRightCorner[0],UpLeftCorner[0],PXToDraw[0],PXToDraw[99]);
+        GERGDraw.Pressure = map(mouseY,DownRightCorner[0],UpLeftCorner[0],PXToDraw[0],PXToDraw[99]);
         let DesiredEntalphy=map(mouseX,DownRightCorner[1],UpLeftCorner[1],HZToDraw[9][0],HZToDraw[0][0]);
         //Start Binary Search
         let TemperatureUp=TYToDraw[9];
         let TemperatureDown=TYToDraw[0];
         let TemperatureMiddle=(TemperatureUp+TemperatureDown)/2;
         let EntalphyMiddle=0;
+        GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERG.Density = -GERG.Density;
-            GERG.CalculateDensity(iFlag,TemperatureMiddle,GERG.Pressure,x);
-            EntalphyMiddle = GERG.H;
+            GERGDraw.Density = -GERGDraw.Density;
+            GERGDraw.Temperature = TemperatureMiddle;
+            GERGDraw.CalculateDensity(iFlag);
+            EntalphyMiddle = GERGDraw.H;
             if (DesiredEntalphy < EntalphyMiddle){
                 TemperatureUp=TemperatureMiddle;
                 TemperatureMiddle=(TemperatureUp+TemperatureDown)/2;
@@ -257,7 +264,7 @@ function FindTheClickedPointPH(){
             }
         }
         if (abs(DesiredEntalphy - EntalphyMiddle) < 100){
-            GERG.Temperature = TemperatureMiddle;
+            GERGDraw.Temperature = TemperatureMiddle;
             DrawResultOfMouseData();
             push();
             line(mouseX, mouseY,mouseX, 665);
@@ -278,7 +285,7 @@ function FindTheClickedPointPH(){
             text('Press', 5, 220);
             text('Enthalpy',700, 700);
             textSize(15);
-            text(GERG.Pressure.toFixed(0) + ' kPa', 5, mouseY);
+            text(GERGDraw.Pressure.toFixed(0) + ' kPa', 5, mouseY);
             text(EntalphyMiddle.toFixed(0) + ' J/mol', mouseX, 700);
             pop();
         }
@@ -286,17 +293,19 @@ function FindTheClickedPointPH(){
 }
 function FindTheClickedPointTH(){
     if(mouseX < DownRightCorner[1] && mouseY < DownRightCorner[0] && mouseX > UpLeftCorner[1] && mouseY > UpLeftCorner[0]){
-        GERG.Temperature = map(mouseY,DownRightCorner[0],UpLeftCorner[0],TXToDraw[0],TXToDraw[99]);
+        GERGDraw.Temperature = map(mouseY,DownRightCorner[0],UpLeftCorner[0],TXToDraw[0],TXToDraw[99]);
         let DesiredEntalphy=map(mouseX,DownRightCorner[1],UpLeftCorner[1],maximumValueOfH,minimumValueOfH);
         //Start Binary Search
         let PressureUp=PYToDraw[9];
         let PressureDown=PYToDraw[0];
         let PressureMiddle=(PressureUp+PressureDown)/2;
         let EntalphyMiddle=0;
+        GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERG.Density = -GERG.Density;
-            GERG.CalculateDensity(iFlag,GERG.Temperature,PressureMiddle,x);
-            EntalphyMiddle = GERG.H;
+            GERGDraw.Density = -GERGDraw.Density;
+            GERGDraw.Pressure = PressureMiddle;
+            GERGDraw.CalculateDensity(iFlag);
+            EntalphyMiddle = GERGDraw.H;
             if (DesiredEntalphy < EntalphyMiddle){
                 PressureDown=PressureMiddle;
                 PressureMiddle=(PressureUp+PressureDown)/2;
@@ -306,7 +315,7 @@ function FindTheClickedPointTH(){
             }
         }
         if (abs(DesiredEntalphy - EntalphyMiddle) < 100){
-            GERG.Pressure = PressureMiddle;
+            GERGDraw.Pressure = PressureMiddle;
             DrawResultOfMouseData();
             push();
             line(mouseX, mouseY,mouseX, 665);
@@ -327,7 +336,7 @@ function FindTheClickedPointTH(){
             text('Temp', 5, 220);
             text('Enthalpy',700, 700);
             textSize(15);
-            text(GERG.Temperature.toFixed(0) + ' K', 5, mouseY);
+            text(GERGDraw.Temperature.toFixed(0) + ' K', 5, mouseY);
             text(EntalphyMiddle.toFixed(0) + ' J/mol', mouseX, 700);
             pop();
         }
@@ -335,17 +344,19 @@ function FindTheClickedPointTH(){
 }
 function FindTheClickedPointTS(){
     if(mouseX < DownRightCorner[1] && mouseY < DownRightCorner[0] && mouseX > UpLeftCorner[1] && mouseY > UpLeftCorner[0]){
-        GERG.Temperature = map(mouseY,DownRightCorner[0],UpLeftCorner[0],TXToDraw[0],TXToDraw[99]);
+        GERGDraw.Temperature = map(mouseY,DownRightCorner[0],UpLeftCorner[0],TXToDraw[0],TXToDraw[99]);
         let DesiredEntropy=map(mouseX,DownRightCorner[1],UpLeftCorner[1],maximumValueOfS,minimumValueOfS);
         //Start Binary Search
         let PressureUp=PYToDraw[9];
         let PressureDown=PYToDraw[0];
         let PressureMiddle=(PressureUp+PressureDown)/2;
         let EntropyMiddle=0;
+        GERGDraw.x = x;
         for(let i=0; i<=25; i++){
-            GERG.Density = -GERG.Density;
-            GERG.CalculateDensity(iFlag,GERG.Temperature,PressureMiddle,x);
-            EntropyMiddle = GERG.S;
+            GERGDraw.Density = -GERGDraw.Density;
+            GERGDraw.Pressure = PressureMiddle;
+            GERGDraw.CalculateDensity(iFlag);
+            EntropyMiddle = GERGDraw.S;
             if (DesiredEntropy < EntropyMiddle){
                 PressureDown=PressureMiddle;
                 PressureMiddle=(PressureUp+PressureDown)/2;
@@ -355,7 +366,7 @@ function FindTheClickedPointTS(){
             }
         }
         if (abs(DesiredEntropy - EntropyMiddle) < 2){
-            GERG.Pressure = PressureMiddle;
+            GERGDraw.Pressure = PressureMiddle;
             DrawResultOfMouseData();
             push();
             line(mouseX, mouseY,mouseX, 665);
@@ -376,7 +387,7 @@ function FindTheClickedPointTS(){
             text('Temp', 5, 220);
             text('Entropy',700, 700);
             textSize(15);
-            text(GERG.Temperature.toFixed(0) + ' K', 5, mouseY);
+            text(GERGDraw.Temperature.toFixed(0) + ' K', 5, mouseY);
             text(EntropyMiddle.toFixed(0) + ' J/mol', mouseX, 700);
             pop();
         }
@@ -391,40 +402,40 @@ function DrawResultOfMouseData(){
     textFont('Georgia');
     textStyle(NORMAL);
     fill(CanvasLeterColor);
-    text('Temperature: '+ GERG.Temperature.toFixed(1) + ' K',PositionOfGERGColumn,aux);
+    text('Temperature: '+ GERGDraw.Temperature.toFixed(1) + ' K',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Pressure: '+ GERG.Pressure.toFixed(1) + ' Kpa',PositionOfGERGColumn,aux);
+    text('Pressure: '+ GERGDraw.Pressure.toFixed(1) + ' Kpa',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Molar Mass: '+ GERG.MolarMass.toFixed(2) + ' g/mol',PositionOfGERGColumn,aux);
+    text('Molar Mass: '+ GERGDraw.MolarMass.toFixed(2) + ' g/mol',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Density: '+ GERG.Density.toFixed(3) + ' mol/l',PositionOfGERGColumn,aux);
+    text('Density: '+ GERGDraw.Density.toFixed(3) + ' mol/l',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Compressibility Factor: '+ GERG.CompressibilityFactor.toFixed(2),PositionOfGERGColumn,aux);
+    text('Compressibility Factor: '+ GERGDraw.CompressibilityFactor.toFixed(2),PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('dPdD: '+ GERG.dPdD.toFixed(0) + ' kPa/(mol/l)',PositionOfGERGColumn,aux);
+    text('dPdD: '+ GERGDraw.dPdD.toFixed(0) + ' kPa/(mol/l)',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('dPdT: '+ GERG.dPdT.toFixed(2) + ' kPa/K',PositionOfGERGColumn,aux);
+    text('dPdT: '+ GERGDraw.dPdT.toFixed(2) + ' kPa/K',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Internal Energy: '+ GERG.U.toFixed(1) + ' J/mol',PositionOfGERGColumn,aux);
+    text('Internal Energy: '+ GERGDraw.U.toFixed(1) + ' J/mol',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Entalphy: '+ GERG.H.toFixed(1) + ' J/mol',PositionOfGERGColumn,aux);
+    text('Entalphy: '+ GERGDraw.H.toFixed(1) + ' J/mol',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Entropy: '+ GERG.S.toFixed(1) + ' J/mol',PositionOfGERGColumn,aux);
+    text('Entropy: '+ GERGDraw.S.toFixed(1) + ' J/mol',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Cv: '+ GERG.Cv.toFixed(3) + ' J/(mol-K)',PositionOfGERGColumn,aux);
+    text('Cv: '+ GERGDraw.Cv.toFixed(3) + ' J/(mol-K)',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Cp: '+ GERG.Cp.toFixed(3) + ' J/(mol-K)',PositionOfGERGColumn,aux);
+    text('Cp: '+ GERGDraw.Cp.toFixed(3) + ' J/(mol-K)',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Speed Of Sound: '+ GERG.SpeedOfSound.toFixed(1) + ' (m/s)',PositionOfGERGColumn,aux);
+    text('Speed Of Sound: '+ GERGDraw.SpeedOfSound.toFixed(1) + ' (m/s)',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Gibbs Free Energy: '+ GERG.G.toFixed(1) + ' (J/mol)',PositionOfGERGColumn,aux);
+    text('Gibbs Free Energy: '+ GERGDraw.G.toFixed(1) + ' (J/mol)',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Joule Thomson: '+ GERG.JouleThomson.toFixed(3) + ' (K/kPa)',PositionOfGERGColumn,aux);
+    text('Joule Thomson: '+ GERGDraw.JouleThomson.toFixed(3) + ' (K/kPa)',PositionOfGERGColumn,aux);
     aux=aux+25;
-    text('Isentropic Coefficient (kappa): '+ GERG.IsentropicExponent.toFixed(3),PositionOfGERGColumn,aux);
-    if(GERG.ierr>0 || Detail.ierr>0){
+    text('Isentropic Coefficient (kappa): '+ GERGDraw.IsentropicExponent.toFixed(3),PositionOfGERGColumn,aux);
+    if(GERGDraw.ierr>0 || Detail.ierr>0){
         aux=aux+25;
-        text('Errors Found: '+ GERG.herr,PositionOfGERGColumn,aux);
+        text('Errors Found: '+ GERGDraw.herr,PositionOfGERGColumn,aux);
     }
     pop();
 }

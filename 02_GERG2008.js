@@ -1,714 +1,28 @@
 // Version 2.0 of routines for the calculation of thermodynamic
 // properties from the AGA 8 Part 2 GERG-2008 equation of state.
 // April, 2017
-
 //Written by Eric W. Lemmon
 //Applied Chemicals and Materials Division
 //National Institute of Standards and Technology (NIST)
 //Boulder, Colorado, USA
 //Eric.Lemmon@nist.gov
 //303-497-7939
-
-//Other contributors;
-//Volker Heinemann, RMG Messtechnik GmbH
-//Jason Lu, Thermo Fisher Scientific
-//Ian Bell, NIST
-
-//The publication for the AGA 8 equation of state is available from AGA
-//  and the Transmission Measurement Committee.
-
-//The GERG-2008 equation of state was developed by Oliver Kunz and Wolfgang Wagner;
-
-//Kunz, O. and Wagner, W.
-//The GERG-2008 Wide-Range Equation of State for Natural Gases and Other Mixtures;
-//An Expansion of GERG-2004
-//J. Chem. Eng. Data, 57(11);3032-3091, 2012.
-
-//Kunz, O., Klimeck, R., Wagner, W., and Jaeschke, M.
-//The GERG-2004 Wide-Range Equation of State for Natural Gases and Other Mixtures
-//GERG Technical Monograph 15
-//Fortschr.-Ber. VDI, Reihe 6, Nr. 557, VDI Verlag, Düsseldorf, 2007.
-//http;//www.gerg.eu/public/uploads/files/publications/technical_monographs/tm15_04.pdf
-
-//Subroutines contained here for property calculations;
-//***** Subroutine SetupGERG must be called once before calling other routines. ******
-//Sub MolarMassGERG(x, Mm)
-//Sub PressureGERG(T, D, x, P, Z)
-//Sub DensityGERG(iFlag, T, P, x, D, ierr, herr)
-//Sub PropertiesGERG(T, D, x, P, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa)
-//Sub SetupGERG()
-
-//'The compositions in the x() array use the following order and must be sent as mole fractions;
-//    1 - Methane
-//    2 - Nitrogen
-//    3 - Carbon dioxide
-//    4 - Ethane
-//    5 - Propane
-//    6 - Isobutane
-//    7 - n-Butane
-//    8 - Isopentane
-//    9 - n-Pentane
-//   10 - n-Hexane
-//   11 - n-Heptane
-//   12 - n-Octane
-//   13 - n-Nonane
-//   14 - n-Decane
-//   15 - Hydrogen
-//   16 - Oxygen
-//   17 - Carbon monoxide
-//   18 - Water
-//   19 - Hydrogen sulfide
-//   20 - Helium
-//   21 - Argon
-
-//For example, a mixture of 94% methane, 5% CO2, and 1% helium would be (in mole fractions);
-//x(1)=0.94, x(3)=0.05, x(20)=0.01
-//[js]=> x[1]=0.94; x[3]=0.05; x[20]=0.01
-//Variables containing the common parameters in the GERG-2008 equations
-let GERG={
-  Pressure:400, //KPa
-  Temperature:273.15, //Kelvin
-  MolarMass:0, //g/mol
-  Density:0.04464, //mol/l
-  CompressibilityFactor:0,
-  dPdD:0,
-  d2PdD2:0,
-  d2PdTD:0,
-  dPdT:0,
-  U:0,
-  H:0,
-  S:0,
-  Cv:0,
-  Cp:0,
-  SpeedOfSound:0,
-  G:0,
-  JouleThomson:0,
-  IsentropicExponent:0,
-  A:0,
-  Kappa:0,
-  ierr:0,
-  herr:'',
-  MolarMassGERG(x){
-    //Sub MolarMassGERG(x)
-    //Calculate molar mass of the mixture with the compositions contained in the x() input array
-    //
-    //Inputs;
-    //   x() - Composition (mole fraction)
-    //         Do not send mole percents or mass fractions in the x() array, otherwise the output will be incorrect.
-    //         The sum of the compositions in the x() array must be equal to one.
-    //         The order of the fluids in this array is given at the top of this code.
-    //
-    //Outputs;
-    //    Mm - Molar mass (g/mol)
-    let Mm = 0;
-    for (let i = 1; i <= NcGERG; i++){Mm = Mm + x[i] * MMiGERG[i]}
-    GERG.MolarMass=Mm;
-  },
-  PressureGERG( T, D, x){
-    //Sub PressureGERG(T, D, x, P, Z)
-    //Calculate pressure as a function of temperature and density.  The derivative d(P)/d(D) is also calculated
-    //for use in the iterative DensityGERG subroutine (and is only returned as a common variable).
-    //
-    //Inputs;
-    //     T - Temperature (K)
-    //     D - Density (mol/l)
-    //   x() - Composition (mole fraction)
-    //         Do not send mole percents or mass fractions in the x() array, otherwise the output will be incorrect.
-    //         The sum of the compositions in the x() array must be equal to one.
-    //Outputs;
-    //     P - Pressure (kPa)
-    //     Z - Compressibility factor
-    // dPdDsave - d(P)/d(D) [kPa/(mol/l)] (at constant temperature)
-    //          - This variable is cached in the common variables for use in the iterative density solver, but not returned as an argument.
-    let ar=zeros([3, 3]);
-    let P;
-    let Z;
-    ar=GERG.AlpharGERG(0, 0, T, D, x);
-    Z = 1 + ar[0][1];
-    P = D * RGERG * T * Z;
-    dPdDsave = RGERG * T * (1 + 2 * ar[0][1] + ar[0][2]);
-    GERG.Pressure=P;
-    GERG.CompressibilityFactor=Z;
-  },
-  CalculateDensity(iFlag,T,P,x){
-    //Sub DensityGERG(iFlag, T, P, x, D, ierr, herr)
-    //Calculate density as a function of temperature and pressure.  This is an iterative routine that calls PressureGERG
-    //to find the correct state point.  Generally only 6 iterations at most are required.
-    //If the iteration fails to converge, the ideal gas density and an error message are returned.
-    //No checks are made to determine the phase boundary, which would have guaranteed that the output is in the gas phase (or liquid phase when iFlag=2).
-    //It is up to the user to locate the phase boundary, and thus identify the phase of the T and P inputs.
-    //If the state point is 2-phase, the output density will represent a metastable state.
-    //Inputs;
-    // iFlag - Set to 0 for strict pressure solver in the gas phase without checks (fastest mode, but output state may not be stable single phase)
-    //         Set to 1 to make checks for possible 2-phase states (result may still not be stable single phase, but many unstable states will be identified)
-    //         Set to 2 to search for liquid phase (and make the same checks when iFlag=1)
-    //     T - Temperature (K)
-    //     P - Pressure (kPa)
-    //   x() - Composition (mole fraction)
-    //(An initial guess for the density can be sent in D as the negative of the guess for roots that are in the liquid phase instead of using iFlag=2)
-    //Outputs;
-    //     D - Density (mol/l)
-    let D=0;
-    //  ierr - Error number (0 indicates no error)
-    let ierr = 0;
-    //  herr - Error message if ierr is not equal to zero
-    let herr = '';
-    let Mm;
-    let nFail;
-    let iFail;
-    let plog;
-    let vlog;
-    let P2;
-    let Z;
-    let dpdlv;
-    let vdiff;
-    let tolr;
-    let vinc;
-    let Tcx;
-    let Dcx;
-    let dPdD;
-    let d2PdD2;
-    let d2PdTD;
-    let dPdT;
-    let U;
-    let H;
-    let S;
-    let A;
-    let Cv;
-    let Cp;
-    let W;
-    let G;
-    let JT;
-    let Kappa;
-    let PP;
-    let it=1;
-    nFail = 0;
-    iFail = 0;
-    if(P < Epsilon) {D=0;return}
-    tolr = 0.0000001;
-    [Tcx, Dcx]=GERG.PseudoCriticalPointGERG(x);
-    if (D > -Epsilon){
-      D = P / RGERG / T;        //Ideal gas estimate for vapor phase
-      if(iFlag == 2){D=Dcx*3};  //Initial estimate for liquid phase
-    }else{
-      D = Math.abs(D);          //If D<0, then use as initial estimate
-    }
-    plog = Math.log(P);
-    vlog = -Math.log(D);
-    for(it = 1; it <= 50; it++){
-      if (vlog < -7 || vlog > 100 || it == 20 || it == 30 || it == 40 || iFail == 1){
-        //Current state is bad or iteration is taking too long.  Restart with completely different initial state
-        iFail = 0;
-        if(nFail > 2){GoToDError()}
-        nFail = nFail + 1;
-        if (nFail == 1){
-          D = Dcx * 3;    //If vapor phase search fails, look for root in liquid region
-        }else if(nFail == 2){
-          D = Dcx * 2.5;  //If liquid phase search fails, look for root between liquid and critical regions
-        }else if(nFail == 3){
-          D = Dcx * 2;    //If search fails, look for root in critical region
-        }
-        vlog = -Math.log(D)
-      }
-      D = Math.exp(-vlog);
-      GERG.PressureGERG( T, D, x);
-      P2=GERG.Pressure;
-      Z=GERG.CompressibilityFactor;
-      //PressureGERG(T, D, x, P2, Z)
-      if (dPdDsave < Epsilon || P2 < Epsilon){
-        //Current state is 2-phase, try locating a different state that is single phase
-        vinc = 0.1;
-        if(D > Dcx){vinc = -0.1};
-        if(it > 5){vinc = vinc / 2};
-        if(it > 10 && it < 20){vinc = vinc / 5};
-        vlog = vlog + vinc;
-      }else{
-        //Find the next density with a first order Newton's type iterative scheme, with
-        //log(P) as the known variable and log(v) as the unknown property.
-        //See AGA 8 publication for further information.
-        dpdlv = -D * dPdDsave;     //d(p)/d[log(v)]
-        vdiff = (Math.log(P2) - plog) * P2 / dpdlv;
-        vlog = vlog - vdiff;
-        if(Math.abs(vdiff) < tolr){
-          //Check to see if state is possibly 2-phase, and if so restart
-          if(dPdDsave < 0){
-            iFail = 1;
-          }else{
-            D = Math.exp(-vlog);
-            GoToConverged();
-          }
-        }
-      }
-    }
-    GERG.Density=D;
-    GERG.ierr=ierr;
-    GERG.herr=herr;
-    //Iteration failed (above loop did not find a solution or checks made below indicate possible 2-phase state)
-    function GoToDError(){
-      ierr = 1;
-      herr = 'Calculation failed to converge in GERG method, ideal gas density returned.'
-      D = P / RGERG / T;
-      it = 51;
-      GERG.Density=D;
-      GERG.ierr=ierr;
-      GERG.herr=herr;
-    }
-    //Iteration converged
-    function GoToConverged(){
-      //If requested, check to see if point is possibly 2-phase
-      if (iFlag > 0) {
-        GERG.CalculateProperties(T, D, x);
-        Mm = GERG.MolarMass;
-        P = GERG.Pressure;
-        Z = GERG.CompressibilityFactor;
-        dPdD = GERG.dPdD;
-        d2PdD2 = GERG.d2PdD2;
-        d2PdTD = GERG.d2PdTD;
-        dPdT = GERG.dPdT;
-        U = GERG.U;
-        H = GERG.H;
-        S = GERG.S;
-        Cv = GERG.Cv;
-        Cp = GERG.Cp;
-        W = GERG.SpeedOfSound;
-        G = GERG.G;
-        JT = GERG.JouleThomson;
-        Kappa = GERG.IsentropicExponent;
-        A = GERG.A;
-            //PropertiesGERG(T, D, x, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa);
-        if(PP <= 0 || dPdD <= 0 || d2PdTD <= 0){GoToDError()};
-        if(Cv <= 0 || Cp <= 0 || W <= 0){GoToDError()};
-        it = 51;
-        GERG.Density=D;
-        GERG.ierr=ierr;
-        GERG.herr=herr;
-        return;
-      }
-      GERG.Density=D;
-      GERG.ierr=ierr;
-      GERG.herr=herr;
-    }
-  },
-  CalculateProperties(T,D,x){
-    //Sub PropertiesGERG(T, D, x, P, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, Optional A)
-    //Calculate thermodynamic properties as a function of temperature and density.
-    //If the density is not known, call subroutine DensityGERG first with the known values of pressure and temperature.
-    //Many of the formulas below do not appear in Part 2 of AGA 8, but rather in Part 1, which uses a dimensional Helmholtz equation with more direct formulas for quick calculation.
-    //Inputs;
-    //     T - Temperature (K)
-    //     D - Density (mol/l)
-    //   x() - Composition (mole fraction)
-    //Outputs;
-    //     P - Pressure (kPa)
-    let P;
-    //     Z - Compressibility factor
-    let Z;
-    //  dPdD - First derivative of pressure with respect to density at constant temperature [kPa/(mol/l)]
-    let dPdD;
-    //d2PdD2 - Second derivative of pressure with respect to density at constant temperature [kPa/(mol/l)^2]
-    let d2PdD2;
-    //d2PdTD - Second derivative of pressure with respect to temperature and density [kPa/(mol/l)/K]
-    let d2PdTD;
-    //  dPdT - First derivative of pressure with respect to temperature at constant density (kPa/K)
-    let dPdT;
-    //     U - Internal energy (J/mol)
-    let U;
-    //     H - Enthalpy (J/mol)
-    let H;
-    //     S - Entropy [J/(mol-K)]
-    let S;
-    //    Cv - Isochoric heat capacity [J/(mol-K)]
-    let Cv;
-    //    Cp - Isobaric heat capacity [J/(mol-K)]
-    let Cp;
-    //     W - Speed of sound (m/s)
-    let W;
-    //     G - Gibbs energy (J/mol)
-    let G;
-    //    JT - Joule-Thomson coefficient (K/kPa)
-    let JT;
-    // Kappa - Isentropic Exponent
-    let Kappa;
-    //     A - Helmholtz energy (J/mol)
-    let A;
-    let a0=Array(3).fill(0);
-    let ar=zeros([3, 3]);
-    let Mm;
-    let R;
-    let RT;
-    //Calculate molar mass
-    GERG.MolarMassGERG(x);
-    Mm = GERG.MolarMass;
-    //Calculate the ideal gas Helmholtz energy, and its first and second derivatives with respect to temperature.
-    a0=GERG.Alpha0GERG(T, D, x);
-    //Calculate the real gas Helmholtz energy, and its derivatives with respect to temperature and/or density.
-    ar=GERG.AlpharGERG(1, 0, T, D, x);
-    R = RGERG;
-    RT = R * T;
-    Z = 1 + ar[0][1];
-    P = D * RT * Z;
-    dPdD = RT * (1 + 2 * ar[0][1] + ar[0][2]);
-    dPdT = D * R * (1 + ar[0][1] - ar[1][1]);
-    d2PdTD = R * (1 + 2 * ar[0][1] + ar[0][2] - 2 * ar[1][1] - ar[1][2]);
-    A = RT * (a0[0] + ar[0][0]);
-    G = RT * (1 + ar[0][1] + a0[0] + ar[0][0]);
-    U = RT * (a0[1] + ar[1][0]);
-    H = RT * (1 + ar[0][1] + a0[1] + ar[1][0]);
-    S = R * (a0[1] + ar[1][0] - a0[0] - ar[0][0]);
-    Cv = -R * (a0[2] + ar[2][0]);
-    if (D > Epsilon){
-      Cp = Cv + T * Math.pow((dPdT / D),2) / dPdD;
-      d2PdD2 = RT * (2 * ar[0][1] + 4 * ar[0][2] + ar[0][3]) / D;
-      JT = (T / D * dPdT / dPdD - 1) / Cp / D; //=(dB/dT*T-B)/Cp for an ideal gas, but dB/dT is not known
-    }else{
-      Cp = Cv + R;
-      d2PdD2 = 0;
-      JT = 1E+20;
-    }
-    W = 1000 * Cp / Cv * dPdD / Mm;
-    if (W < 0) {W = 0};
-    W = Math.sqrt(W);
-    Kappa = Math.pow(W,2) * Mm / (RT * 1000 * Z);
-    GERG.MolarMass = Mm;
-    GERG.Pressure = P;
-    GERG.CompressibilityFactor = Z;
-    GERG.dPdD = dPdD;
-    GERG.d2PdD2 = d2PdD2;
-    GERG.d2PdTD = d2PdTD;
-    GERG.dPdT = dPdT;
-    GERG.U = U;
-    GERG.H = H;
-    GERG.S = S;
-    GERG.Cv = Cv;
-    GERG.Cp = Cp;
-    GERG.SpeedOfSound = W;
-    GERG.G = G;
-    GERG.JouleThomson = JT;
-    GERG.IsentropicExponent = Kappa;
-    GERG.A = A;
-  },
-  //The following routines are low-level routines that should not be called outside of this code.
-  ReducingParametersGERG(x, Tr, Dr){
-    //Private Sub ReducingParametersGERG(x, Tr, Dr)
-    //Calculate reducing variables.  Only need to call this if the composition has changed.
-    //
-    //Inputs;
-    //   x() - Composition (mole fraction)
-    //
-    //Outputs;
-    //    Tr - Reducing temperature (K)
-    //    Dr - Reducing density (mol/l)
-    let Vr;
-    let xij;
-    let F;
-    let i;
-    let j;
-    let icheck;
-    //Check to see if a component fraction has changed.  If x is the same as the previous call, then exit.
-    icheck = 0;
-    for (i = 1; i <= NcGERG; i++){
-      if (Math.abs(x[i] - xold[i]) > 0.0000001){icheck = 1}
-      xold[i] = x[i];
-    }
-    if (icheck == 0){
-      Dr = Drold;
-      Tr = Trold;
-      return [Tr, Dr];
-    }
-    Told = 0;
-    Trold2 = 0;
-    //Calculate reducing variables for T and D
-    Dr = 0;
-    Vr = 0;
-    Tr = 0;
-    for (i = 1; i <= NcGERG; i++){
-      if (x[i] > Epsilon){
-        F = 1;
-        for (j = i; j <= NcGERG; j++){
-          if (x[j] > Epsilon){
-            xij = F * (x[i] * x[j]) * (x[i] + x[j]);
-            Vr = Vr + xij * gvij[i][j] / (bvij[i][j] * x[i] + x[j]);
-            Tr = Tr + xij * gtij[i][j] / (btij[i][j] * x[i] + x[j]);
-            F = 2;
-          }
-        }
-      }
-    }
-    if (Vr > Epsilon){Dr = 1 / Vr}
-    Drold = Dr;
-    Trold = Tr;
-    return [Tr,Dr];
-  },
-  Alpha0GERG(T,D,x){
-    //Private Sub Alpha0GERG(T, D, x, a0)
-    //Calculate the ideal gas Helmholtz energy and its derivatives with respect to tau and delta.
-    //This routine is not needed when only P (or Z) is calculated.
-    //Inputs;
-    //     T - Temperature (K)
-    //     D - Density (mol/l)
-    //   x() - Composition (mole fraction)
-    //Outputs;
-    // a0(0) - Ideal gas Helmholtz energy (dimensionless [i.e., divided by RT])
-    // a0(1) - tau*partial(a0)/partial(tau)
-    // a0(2) - tau^2*partial^2(a0)/partial(tau)^2
-    let a0 = Array(3).fill(0);
-    let LogT;
-    let LogD;
-    let LogHyp;
-    let th0T;
-    let LogxD;
-    let SumHyp0;
-    let SumHyp1;
-    let SumHyp2;
-    let em;
-    let ep;
-    let hcn;
-    let hsn;
-    if (D > Epsilon){LogD = Math.log(D)}else{LogD = Math.log(Epsilon)}
-    LogT = Math.log(T);
-    for (let i = 1; i <= NcGERG; i++){
-      if (x[i] > Epsilon){
-        LogxD = LogD + Math.log(x[i]);
-        SumHyp0 = 0;
-        SumHyp1 = 0;
-        SumHyp2 = 0;
-        for (let j = 4; j <= 7; j++){
-          if (th0i[i][j] > Epsilon){
-            th0T = th0i[i][j] / T;
-            ep = Math.exp(th0T);
-            em = 1 / ep;
-            hsn = (ep - em) / 2;
-            hcn = (ep + em) / 2;
-            if(j == 4 || j == 6){
-              LogHyp = Math.log(Math.abs(hsn))
-              SumHyp0 = SumHyp0 + n0i[i][j] * LogHyp;
-              SumHyp1 = SumHyp1 + n0i[i][j] * th0T * hcn / hsn;
-              SumHyp2 = SumHyp2 + n0i[i][j] * Math.pow((th0T / hsn), 2);
-            }else{
-              LogHyp = Math.log(Math.abs(hcn));
-              SumHyp0 = SumHyp0 - n0i[i][j] * LogHyp;
-              SumHyp1 = SumHyp1 - n0i[i][j] * th0T * hsn / hcn;
-              SumHyp2 = SumHyp2 + n0i[i][j] * Math.pow((th0T / hcn), 2);
-            }
-          }
-        }
-        a0[0] = a0[0] + x[i] * (LogxD + n0i[i][1] + n0i[i][2] / T - n0i[i][3] * LogT + SumHyp0);
-        a0[1] = a0[1] + x[i] * (n0i[i][3] + n0i[i][2] / T + SumHyp1);
-        a0[2] = a0[2] - x[i] * (n0i[i][3] + SumHyp2);
-      }
-    }
-    return a0;
-  },
-  AlpharGERG(itau,idel,T,D,x){
-    //Private Sub AlpharGERG(itau, idel, T, D, x, ar)
-    //Calculate dimensionless residual Helmholtz energy and its derivatives with respect to tau and delta.
-    //Inputs;
-    //  itau - Set this to 1 to calculate "ar" derivatives with respect to tau [i.e., ar(1,0), ar(1,1), and ar(2,0)], otherwise set it to 0.
-    //  idel - Currently not used, but kept as an input for future use in specifing the highest density derivative needed.
-    //     T - Temperature (K)
-    //     D - Density (mol/l)
-    //   x() - Composition (mole fraction)
-    //Outputs;
-    // ar(0,0) - Residual Helmholtz energy (dimensionless, =a/RT)
-    // ar(0,1) -     delta*partial  (ar)/partial(delta)
-    // ar(0,2) -   delta^2*partial^2(ar)/partial(delta)^2
-    // ar(0,3) -   delta^3*partial^3(ar)/partial(delta)^3
-    // ar(1,0) -       tau*partial  (ar)/partial(tau)
-    // ar(1,1) - tau*delta*partial^2(ar)/partial(tau)/partial(delta)
-    // ar(2,0) -     tau^2*partial^2(ar)/partial(tau)^2
-    let mn;
-    let Tr;
-    let Dr;
-    let del;
-    let tau;
-    let lntau;
-    let ex;
-    let ex2;
-    let ex3;
-    let cij0;
-    let eij0;
-    let delp=Array(7).fill(0);
-    let Expd=Array(7).fill(0);
-    let ndt;
-    let ndtd;
-    let ndtt;
-    let xijf;
-    let ar=zeros([3,3]);
-    //Set up del, tau, log(tau), and the first 7 calculations for del^i
-    [Tr, Dr]=GERG.ReducingParametersGERG(x, Tr, Dr);
-    del = D / Dr;
-    tau = Tr / T;
-    lntau = Math.log(tau);
-    delp[1] = del;
-    Expd[1] = Math.exp(-delp[1]);
-    for (let i = 2; i <= 7;i++){
-      delp[i] = delp[i - 1] * del;
-      Expd[i] = Math.exp(-delp[i]);
-    }
-    //If temperature has changed, calculate temperature dependent parts
-    if (Math.abs(T - Told) > 0.0000001 || Math.abs(Tr - Trold2) > 0.0000001){GERG.tTermsGERG(lntau, x)}
-    Told = T;
-    Trold2 = Tr;
-    //Calculate pure fluid contributions
-    for (let i = 1; i <= NcGERG; i++){
-      if (x[i] > Epsilon){
-        for(let k = 1; k <= kpol[i]; k++){
-          ndt = x[i] * delp[doik[i][k]] * taup[i][k];
-          ndtd = ndt * doik[i][k];
-          ar[0][1] = ar[0][1] + ndtd;
-          ar[0][2] = ar[0][2] + ndtd * (doik[i][k] - 1);
-          if(itau > 0){
-            ndtt = ndt * toik[i][k];
-            ar[0][0] = ar[0][0] + ndt;
-            ar[1][0] = ar[1][0] + ndtt;
-            ar[2][0] = ar[2][0] + ndtt * (toik[i][k] - 1);
-            ar[1][1] = ar[1][1] + ndtt * doik[i][k];
-            ar[1][2] = ar[1][2] + ndtt * doik[i][k] * (doik[i][k] - 1);
-            ar[0][3] = ar[0][3] + ndtd * (doik[i][k] - 1) * (doik[i][k] - 2);
-          }
-        }
-        for(let k = 1 + kpol[i]; k <= kpol[i] + kexp[i]; k++){
-          ndt = x[i] * delp[doik[i][k]] * taup[i][k] * Expd[coik[i][k]];
-          ex = coik[i][k] * delp[coik[i][k]];
-          ex2 = doik[i][k] - ex;
-          ex3 = ex2 * (ex2 - 1);
-          ar[0][1] = ar[0][1] + ndt * ex2;
-          ar[0][2] = ar[0][2] + ndt * (ex3 - coik[i][k] * ex);
-          if(itau > 0){
-            ndtt = ndt * toik[i][k];
-            ar[0][0] = ar[0][0] + ndt;
-            ar[1][0] = ar[1][0] + ndtt;
-            ar[2][0] = ar[2][0] + ndtt * (toik[i][k] - 1);
-            ar[1][1] = ar[1][1] + ndtt * ex2;
-            ar[1][2] = ar[1][2] + ndtt * (ex3 - coik[i][k] * ex);
-            ar[0][3] = ar[0][3] + ndt * (ex3 * (ex2 - 2) - ex * (3 * ex2 - 3 + coik[i][k]) * coik[i][k]);
-          }
-        }
-      }
-    }
-    //Calculate mixture contributions
-    for (let i = 1; i <= NcGERG - 1; i++){
-      if (x[i] > Epsilon){
-        for (let j = i + 1; j <= NcGERG; j++){
-          if (x[j] > Epsilon){
-            mn = mNumb[i][j];
-            if (mn >= 0){
-              xijf = x[i] * x[j] * fij[i][j];
-              for (let k = 1; k <= kpolij[mn]; k++){
-                ndt = xijf * delp[dijk[mn][k]] * taupijk[mn][k];
-                ndtd = ndt * dijk[mn][k];
-                ar[0][1] = ar[0][1] + ndtd;
-                ar[0][2] = ar[0][2] + ndtd * (dijk[mn][k] - 1);
-                if (itau > 0){
-                  ndtt = ndt * tijk[mn][k];
-                  ar[0][0] = ar[0][0] + ndt;
-                  ar[1][0] = ar[1][0] + ndtt;
-                  ar[2][0] = ar[2][0] + ndtt * (tijk[mn][k] - 1);
-                  ar[1][1] = ar[1][1] + ndtt * dijk[mn][k];
-                  ar[1][2] = ar[1][2] + ndtt * dijk[mn][k] * (dijk[mn][k] - 1);
-                  ar[0][3] = ar[0][3] + ndtd * (dijk[mn][k] - 1) * (dijk[mn][k] - 2);
-                }
-              }
-              for (let k = 1 + kpolij[mn]; k <= kpolij[mn] + kexpij[mn]; k++){
-                cij0 = cijk[mn][k] * delp[2];
-                eij0 = eijk[mn][k] * del;
-                ndt = xijf * nijk[mn][k] * delp[dijk[mn][k]] * Math.exp(cij0 + eij0 + gijk[mn][k] + tijk[mn][k] * lntau);
-                ex = dijk[mn][k] + 2 * cij0 + eij0;
-                ex2 = (ex * ex - dijk[mn][k] + 2 * cij0);
-                ar[0][1] = ar[0][1] + ndt * ex;
-                ar[0][2] = ar[0][2] + ndt * ex2;
-                if(itau > 0){
-                  ndtt = ndt * tijk[mn][k];
-                  ar[0][0] = ar[0][0] + ndt;
-                  ar[1][0] = ar[1][0] + ndtt;
-                  ar[2][0] = ar[2][0] + ndtt * (tijk[mn][k] - 1);
-                  ar[1][1] = ar[1][1] + ndtt * ex;
-                  ar[1][2] = ar[1][2] + ndtt * ex2;
-                  ar[0][3] = ar[0][3] + ndt * (ex * (ex2 - 2 * (dijk[mn][k] - 2 * cij0)) + 2 * dijk[mn][k]);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return ar;
-  },
-  tTermsGERG(lntau,x){
-    //Private Sub tTermsGERG(lntau, x)
-    //Calculate temperature dependent parts of the GERG-2008 equation of state
-    let i;
-    let j;
-    let k;
-    let mn;
-    let taup0=Array(12).fill(0);
-    i = 5;  //Use propane to get exponents for short form of EOS
-    for (k = 1 ; k <= kpol[i] + kexp[i]; k++){
-      taup0[k] = Math.exp(toik[i][k] * lntau);
-    }
-    for (i = 1 ; i <= NcGERG; i ++){
-      if (x[i] > Epsilon){
-        if (i > 4 && i != 15 && i != 18 && i != 20){
-          for (k = 1; k <= kpol[i] + kexp[i]; k++){
-            taup[i][k] = noik[i][k] * taup0[k];
-          }
-        }else{
-          for (k = 1 ; k <= kpol[i] + kexp[i]; k++){
-            taup[i][k] = noik[i][k] * Math.exp(toik[i][k] * lntau);
-          }
-        }
-      }
-    }
-    for (i = 1 ; i <= NcGERG - 1; i++){
-      if (x[i] > Epsilon){
-        for (j = i + 1 ; j <= NcGERG; j++){
-          if (x[j] > Epsilon){
-            mn = mNumb[i][j];
-            if (mn >= 0){
-              for (k = 1 ; k <= kpolij[mn]; k++){
-                taupijk[mn][k] = nijk[mn][k] * Math.exp(tijk[mn][k] * lntau);
-              }
-            }
-          }
-        }
-      }
-    }
-    return;
-  },
-  PseudoCriticalPointGERG(x){
-    //Sub PseudoCriticalPointGERG(x, Tcx, Dcx)
-    //Calculate a pseudo critical point as the mole fraction average of the critical temperatures and critical volumes
-    let Vcx=0;
-    Tcx = 0;
-    Dcx = 0;
-    for (let i = 1; i <= NcGERG; i++){
-      Tcx = Tcx + x[i] * Tc[i];
-      Vcx = Vcx + x[i] / Dc[i];
-    }
-    if(Vcx > Epsilon){Dcx = 1 / Vcx}
-    return [Tcx, Dcx];
-  },
+function SetupFlowStreamSimulator(){
   //The following routine must be called once before any other routine.
-  Setup(){
     //Initialize all the constants and parameters in the GERG-2008 model.
     //Some values are modified for calculations that do not depend on T, D, and x in order to speed up the program.
+    RGERG = 8.314472;
     let i;
     let j;
-    let o13;
-    let bijk=zeros([MaxMdl, MaxTrmM])
-    let Rs;
-    let Rsr;
+    let o13 = 1 / 3;
+    let bijk=zeros2(MaxMdl + 1,MaxTrmM + 1);
+    let Rs = 8.31451;
+    let Rsr = Rs / RGERG;
     let n1;
     let n2;
     let T0;
     let d0;
-    RGERG = 8.314472;
-    Rs = 8.31451;
-    Rsr = Rs / RGERG;
-    o13 = 1 / 3;
-    for (i = 1 ; i <= MaxFlds; i++){
-      xold[i] = 0;
-    }
+    for (i = 1 ; i <= MaxFlds; i++){xold[i] = 0}
     Told = 0;
     //Molar masses (g/mol)
     MMiGERG[1] = 16.04246;    //Methane
@@ -733,10 +47,7 @@ let GERG={
     MMiGERG[20] = 4.002602;   //Helium
     MMiGERG[21] = 39.948;     //Argon
     //Number of polynomial and exponential terms
-    for (i = 1; i <= MaxFlds; i++){
-      kpol[i] = 6;
-      kexp[i] = 6;
-    }
+    for (i = 1; i <= MaxFlds; i++){kpol[i] = 6;kexp[i] = 6}
     kexp[1] = 18;
     kexp[2] = 18;
     kexp[4] = 18;
@@ -1167,96 +478,94 @@ let GERG={
     coik[20][10] = 2; doik[20][10] = 2; toik[20][10] = 1;        noik[20][10] = -0.03329568012302;
     coik[20][11] = 3; doik[20][11] = 1; toik[20][11] = 4.5;      noik[20][11] = -0.010863577372367;
     coik[20][12] = 3; doik[20][12] = 2; toik[20][12] = 5;        noik[20][12] = -0.022173365245954;
-
     //Exponents in mixture equations
     //Methane-Nitrogen
-    dijk[3][1] = 1;  tijk[3][1] = 0;     cijk[3][1] = 0;     eijk[3][1] = 0;    bijk[3][1] = 0;    gijk[3][1] = 0;    nijk[3][1] = -9.8038985517335E-03
-    dijk[3][2] = 4;  tijk[3][2] = 1.85;  cijk[3][2] = 0;     eijk[3][2] = 0;    bijk[3][2] = 0;    gijk[3][2] = 0;    nijk[3][2] = 4.2487270143005E-04
-    dijk[3][3] = 1;  tijk[3][3] = 7.85;  cijk[3][3] = 1;     eijk[3][3] = 0.5;  bijk[3][3] = 1;    gijk[3][3] = 0.5;  nijk[3][3] = -0.034800214576142
-    dijk[3][4] = 2;  tijk[3][4] = 5.4;   cijk[3][4] = 1;     eijk[3][4] = 0.5;  bijk[3][4] = 1;    gijk[3][4] = 0.5;  nijk[3][4] = -0.13333813013896
-    dijk[3][5] = 2;  tijk[3][5] = 0;     cijk[3][5] = 0.25;  eijk[3][5] = 0.5;  bijk[3][5] = 2.5;  gijk[3][5] = 0.5;  nijk[3][5] = -0.011993694974627
-    dijk[3][6] = 2;  tijk[3][6] = 0.75;  cijk[3][6] = 0;     eijk[3][6] = 0.5;  bijk[3][6] = 3;    gijk[3][6] = 0.5;  nijk[3][6] = 0.069243379775168
-    dijk[3][7] = 2;  tijk[3][7] = 2.8;   cijk[3][7] = 0;     eijk[3][7] = 0.5;  bijk[3][7] = 3;    gijk[3][7] = 0.5;  nijk[3][7] = -0.31022508148249
-    dijk[3][8] = 2;  tijk[3][8] = 4.45;  cijk[3][8] = 0;     eijk[3][8] = 0.5;  bijk[3][8] = 3;    gijk[3][8] = 0.5;  nijk[3][8] = 0.24495491753226
-    dijk[3][9] = 3;  tijk[3][9] = 4.25;  cijk[3][9] = 0;     eijk[3][9] = 0.5;  bijk[3][9] = 3;    gijk[3][9] = 0.5;  nijk[3][9] = 0.22369816716981
+    dijk[3][1] = 1;  tijk[3][1] = 0;     cijk[3][1] = 0;     eijk[3][1] = 0;    bijk[3][1] = 0;    gijk[3][1] = 0;    nijk[3][1] = -9.8038985517335E-03;
+    dijk[3][2] = 4;  tijk[3][2] = 1.85;  cijk[3][2] = 0;     eijk[3][2] = 0;    bijk[3][2] = 0;    gijk[3][2] = 0;    nijk[3][2] = 4.2487270143005E-04;
+    dijk[3][3] = 1;  tijk[3][3] = 7.85;  cijk[3][3] = 1;     eijk[3][3] = 0.5;  bijk[3][3] = 1;    gijk[3][3] = 0.5;  nijk[3][3] = -0.034800214576142;
+    dijk[3][4] = 2;  tijk[3][4] = 5.4;   cijk[3][4] = 1;     eijk[3][4] = 0.5;  bijk[3][4] = 1;    gijk[3][4] = 0.5;  nijk[3][4] = -0.13333813013896;
+    dijk[3][5] = 2;  tijk[3][5] = 0;     cijk[3][5] = 0.25;  eijk[3][5] = 0.5;  bijk[3][5] = 2.5;  gijk[3][5] = 0.5;  nijk[3][5] = -0.011993694974627;
+    dijk[3][6] = 2;  tijk[3][6] = 0.75;  cijk[3][6] = 0;     eijk[3][6] = 0.5;  bijk[3][6] = 3;    gijk[3][6] = 0.5;  nijk[3][6] = 0.069243379775168;
+    dijk[3][7] = 2;  tijk[3][7] = 2.8;   cijk[3][7] = 0;     eijk[3][7] = 0.5;  bijk[3][7] = 3;    gijk[3][7] = 0.5;  nijk[3][7] = -0.31022508148249;
+    dijk[3][8] = 2;  tijk[3][8] = 4.45;  cijk[3][8] = 0;     eijk[3][8] = 0.5;  bijk[3][8] = 3;    gijk[3][8] = 0.5;  nijk[3][8] = 0.24495491753226;
+    dijk[3][9] = 3;  tijk[3][9] = 4.25;  cijk[3][9] = 0;     eijk[3][9] = 0.5;  bijk[3][9] = 3;    gijk[3][9] = 0.5;  nijk[3][9] = 0.22369816716981;
     //Methane-Carbon dioxide
-    dijk[4][1] = 1;  tijk[4][1] = 2.6;   cijk[4][1] = 0;     eijk[4][1] = 0;    bijk[4][1] = 0;    gijk[4][1] = 0;    nijk[4][1] = -0.10859387354942
-    dijk[4][2] = 2;  tijk[4][2] = 1.95;  cijk[4][2] = 0;     eijk[4][2] = 0;    bijk[4][2] = 0;    gijk[4][2] = 0;    nijk[4][2] = 0.080228576727389
-    dijk[4][3] = 3;  tijk[4][3] = 0;     cijk[4][3] = 0;     eijk[4][3] = 0;    bijk[4][3] = 0;    gijk[4][3] = 0;    nijk[4][3] = -9.3303985115717E-03
-    dijk[4][4] = 1;  tijk[4][4] = 3.95;  cijk[4][4] = 1;     eijk[4][4] = 0.5;  bijk[4][4] = 1;    gijk[4][4] = 0.5;  nijk[4][4] = 0.040989274005848
-    dijk[4][5] = 2;  tijk[4][5] = 7.95;  cijk[4][5] = 0.5;   eijk[4][5] = 0.5;  bijk[4][5] = 2;    gijk[4][5] = 0.5;  nijk[4][5] = -0.24338019772494
-    dijk[4][6] = 3;  tijk[4][6] = 8;     cijk[4][6] = 0;     eijk[4][6] = 0.5;  bijk[4][6] = 3;    gijk[4][6] = 0.5;  nijk[4][6] = 0.23855347281124
+    dijk[4][1] = 1;  tijk[4][1] = 2.6;   cijk[4][1] = 0;     eijk[4][1] = 0;    bijk[4][1] = 0;    gijk[4][1] = 0;    nijk[4][1] = -0.10859387354942;
+    dijk[4][2] = 2;  tijk[4][2] = 1.95;  cijk[4][2] = 0;     eijk[4][2] = 0;    bijk[4][2] = 0;    gijk[4][2] = 0;    nijk[4][2] = 0.080228576727389;
+    dijk[4][3] = 3;  tijk[4][3] = 0;     cijk[4][3] = 0;     eijk[4][3] = 0;    bijk[4][3] = 0;    gijk[4][3] = 0;    nijk[4][3] = -9.3303985115717E-03;
+    dijk[4][4] = 1;  tijk[4][4] = 3.95;  cijk[4][4] = 1;     eijk[4][4] = 0.5;  bijk[4][4] = 1;    gijk[4][4] = 0.5;  nijk[4][4] = 0.040989274005848;
+    dijk[4][5] = 2;  tijk[4][5] = 7.95;  cijk[4][5] = 0.5;   eijk[4][5] = 0.5;  bijk[4][5] = 2;    gijk[4][5] = 0.5;  nijk[4][5] = -0.24338019772494;
+    dijk[4][6] = 3;  tijk[4][6] = 8;     cijk[4][6] = 0;     eijk[4][6] = 0.5;  bijk[4][6] = 3;    gijk[4][6] = 0.5;  nijk[4][6] = 0.23855347281124;
     //Methane-Ethane
-    dijk[1][1] = 3;  tijk[1][1] = 0.65;  cijk[1][1] = 0;     eijk[1][1] = 0;    bijk[1][1] = 0;    gijk[1][1] = 0;    nijk[1][1] = -8.0926050298746E-04
-    dijk[1][2] = 4;  tijk[1][2] = 1.55;  cijk[1][2] = 0;     eijk[1][2] = 0;    bijk[1][2] = 0;    gijk[1][2] = 0;    nijk[1][2] = -7.5381925080059E-04
-    dijk[1][3] = 1;  tijk[1][3] = 3.1;   cijk[1][3] = 1;     eijk[1][3] = 0.5;  bijk[1][3] = 1;    gijk[1][3] = 0.5;  nijk[1][3] = -0.041618768891219
-    dijk[1][4] = 2;  tijk[1][4] = 5.9;   cijk[1][4] = 1;     eijk[1][4] = 0.5;  bijk[1][4] = 1;    gijk[1][4] = 0.5;  nijk[1][4] = -0.23452173681569
-    dijk[1][5] = 2;  tijk[1][5] = 7.05;  cijk[1][5] = 1;     eijk[1][5] = 0.5;  bijk[1][5] = 1;    gijk[1][5] = 0.5;  nijk[1][5] = 0.14003840584586
-    dijk[1][6] = 2;  tijk[1][6] = 3.35;  cijk[1][6] = 0.875; eijk[1][6] = 0.5;  bijk[1][6] = 1.25; gijk[1][6] = 0.5;  nijk[1][6] = 0.063281744807738
-    dijk[1][7] = 2;  tijk[1][7] = 1.2;   cijk[1][7] = 0.75;  eijk[1][7] = 0.5;  bijk[1][7] = 1.5;  gijk[1][7] = 0.5;  nijk[1][7] = -0.034660425848809
-    dijk[1][8] = 2;  tijk[1][8] = 5.8;   cijk[1][8] = 0.5;   eijk[1][8] = 0.5;  bijk[1][8] = 2;    gijk[1][8] = 0.5;  nijk[1][8] = -0.23918747334251
-    dijk[1][9] = 2;  tijk[1][9] = 2.7;   cijk[1][9] = 0;     eijk[1][9] = 0.5;  bijk[1][9] = 3;    gijk[1][9] = 0.5;  nijk[1][9] = 1.9855255066891E-03
-    dijk[1][10] = 3; tijk[1][10] = 0.45; cijk[1][10] = 0;    eijk[1][10] = 0.5; bijk[1][10] = 3;   gijk[1][10] = 0.5; nijk[1][10] = 6.1777746171555
-    dijk[1][11] = 3; tijk[1][11] = 0.55; cijk[1][11] = 0;    eijk[1][11] = 0.5; bijk[1][11] = 3;   gijk[1][11] = 0.5; nijk[1][11] = -6.9575358271105
-    dijk[1][12] = 3; tijk[1][12] = 1.95; cijk[1][12] = 0;    eijk[1][12] = 0.5; bijk[1][12] = 3;   gijk[1][12] = 0.5; nijk[1][12] = 1.0630185306388
+    dijk[1][1] = 3;  tijk[1][1] = 0.65;  cijk[1][1] = 0;     eijk[1][1] = 0;    bijk[1][1] = 0;    gijk[1][1] = 0;    nijk[1][1] = -8.0926050298746E-04;
+    dijk[1][2] = 4;  tijk[1][2] = 1.55;  cijk[1][2] = 0;     eijk[1][2] = 0;    bijk[1][2] = 0;    gijk[1][2] = 0;    nijk[1][2] = -7.5381925080059E-04;
+    dijk[1][3] = 1;  tijk[1][3] = 3.1;   cijk[1][3] = 1;     eijk[1][3] = 0.5;  bijk[1][3] = 1;    gijk[1][3] = 0.5;  nijk[1][3] = -0.041618768891219;
+    dijk[1][4] = 2;  tijk[1][4] = 5.9;   cijk[1][4] = 1;     eijk[1][4] = 0.5;  bijk[1][4] = 1;    gijk[1][4] = 0.5;  nijk[1][4] = -0.23452173681569;
+    dijk[1][5] = 2;  tijk[1][5] = 7.05;  cijk[1][5] = 1;     eijk[1][5] = 0.5;  bijk[1][5] = 1;    gijk[1][5] = 0.5;  nijk[1][5] = 0.14003840584586;
+    dijk[1][6] = 2;  tijk[1][6] = 3.35;  cijk[1][6] = 0.875; eijk[1][6] = 0.5;  bijk[1][6] = 1.25; gijk[1][6] = 0.5;  nijk[1][6] = 0.063281744807738;
+    dijk[1][7] = 2;  tijk[1][7] = 1.2;   cijk[1][7] = 0.75;  eijk[1][7] = 0.5;  bijk[1][7] = 1.5;  gijk[1][7] = 0.5;  nijk[1][7] = -0.034660425848809;
+    dijk[1][8] = 2;  tijk[1][8] = 5.8;   cijk[1][8] = 0.5;   eijk[1][8] = 0.5;  bijk[1][8] = 2;    gijk[1][8] = 0.5;  nijk[1][8] = -0.23918747334251;
+    dijk[1][9] = 2;  tijk[1][9] = 2.7;   cijk[1][9] = 0;     eijk[1][9] = 0.5;  bijk[1][9] = 3;    gijk[1][9] = 0.5;  nijk[1][9] = 1.9855255066891E-03;
+    dijk[1][10] = 3; tijk[1][10] = 0.45; cijk[1][10] = 0;    eijk[1][10] = 0.5; bijk[1][10] = 3;   gijk[1][10] = 0.5; nijk[1][10] = 6.1777746171555;
+    dijk[1][11] = 3; tijk[1][11] = 0.55; cijk[1][11] = 0;    eijk[1][11] = 0.5; bijk[1][11] = 3;   gijk[1][11] = 0.5; nijk[1][11] = -6.9575358271105;
+    dijk[1][12] = 3; tijk[1][12] = 1.95; cijk[1][12] = 0;    eijk[1][12] = 0.5; bijk[1][12] = 3;   gijk[1][12] = 0.5; nijk[1][12] = 1.0630185306388;
     //Methane-Propane
-    dijk[2][1] = 3;  tijk[2][1] = 1.85;  cijk[2][1] = 0;     eijk[2][1] = 0;    bijk[2][1] = 0;    gijk[2][1] = 0;    nijk[2][1] = 0.013746429958576
-    dijk[2][2] = 3;  tijk[2][2] = 3.95;  cijk[2][2] = 0;     eijk[2][2] = 0;    bijk[2][2] = 0;    gijk[2][2] = 0;    nijk[2][2] = -7.4425012129552E-03
-    dijk[2][3] = 4;  tijk[2][3] = 0;     cijk[2][3] = 0;     eijk[2][3] = 0;    bijk[2][3] = 0;    gijk[2][3] = 0;    nijk[2][3] = -4.5516600213685E-03
-    dijk[2][4] = 4;  tijk[2][4] = 1.85;  cijk[2][4] = 0;     eijk[2][4] = 0;    bijk[2][4] = 0;    gijk[2][4] = 0;    nijk[2][4] = -5.4546603350237E-03
-    dijk[2][5] = 4;  tijk[2][5] = 3.85;  cijk[2][5] = 0;     eijk[2][5] = 0;    bijk[2][5] = 0;    gijk[2][5] = 0;    nijk[2][5] = 2.3682016824471E-03
-    dijk[2][6] = 1;  tijk[2][6] = 5.25;  cijk[2][6] = 0.25;  eijk[2][6] = 0.5;  bijk[2][6] = 0.75; gijk[2][6] = 0.5;  nijk[2][6] = 0.18007763721438
-    dijk[2][7] = 1;  tijk[2][7] = 3.85;  cijk[2][7] = 0.25;  eijk[2][7] = 0.5;  bijk[2][7] = 1;    gijk[2][7] = 0.5;  nijk[2][7] = -0.44773942932486
-    dijk[2][8] = 1;  tijk[2][8] = 0.2;   cijk[2][8] = 0;     eijk[2][8] = 0.5;  bijk[2][8] = 2;    gijk[2][8] = 0.5;  nijk[2][8] = 0.0193273748882
-    dijk[2][9] = 2;  tijk[2][9] = 6.5;   cijk[2][9] = 0;     eijk[2][9] = 0.5;  bijk[2][9] = 3;    gijk[2][9] = 0.5;  nijk[2][9] = -0.30632197804624
+    dijk[2][1] = 3;  tijk[2][1] = 1.85;  cijk[2][1] = 0;     eijk[2][1] = 0;    bijk[2][1] = 0;    gijk[2][1] = 0;    nijk[2][1] = 0.013746429958576;
+    dijk[2][2] = 3;  tijk[2][2] = 3.95;  cijk[2][2] = 0;     eijk[2][2] = 0;    bijk[2][2] = 0;    gijk[2][2] = 0;    nijk[2][2] = -7.4425012129552E-03;
+    dijk[2][3] = 4;  tijk[2][3] = 0;     cijk[2][3] = 0;     eijk[2][3] = 0;    bijk[2][3] = 0;    gijk[2][3] = 0;    nijk[2][3] = -4.5516600213685E-03;
+    dijk[2][4] = 4;  tijk[2][4] = 1.85;  cijk[2][4] = 0;     eijk[2][4] = 0;    bijk[2][4] = 0;    gijk[2][4] = 0;    nijk[2][4] = -5.4546603350237E-03;
+    dijk[2][5] = 4;  tijk[2][5] = 3.85;  cijk[2][5] = 0;     eijk[2][5] = 0;    bijk[2][5] = 0;    gijk[2][5] = 0;    nijk[2][5] = 2.3682016824471E-03;
+    dijk[2][6] = 1;  tijk[2][6] = 5.25;  cijk[2][6] = 0.25;  eijk[2][6] = 0.5;  bijk[2][6] = 0.75; gijk[2][6] = 0.5;  nijk[2][6] = 0.18007763721438;
+    dijk[2][7] = 1;  tijk[2][7] = 3.85;  cijk[2][7] = 0.25;  eijk[2][7] = 0.5;  bijk[2][7] = 1;    gijk[2][7] = 0.5;  nijk[2][7] = -0.44773942932486;
+    dijk[2][8] = 1;  tijk[2][8] = 0.2;   cijk[2][8] = 0;     eijk[2][8] = 0.5;  bijk[2][8] = 2;    gijk[2][8] = 0.5;  nijk[2][8] = 0.0193273748882;
+    dijk[2][9] = 2;  tijk[2][9] = 6.5;   cijk[2][9] = 0;     eijk[2][9] = 0.5;  bijk[2][9] = 3;    gijk[2][9] = 0.5;  nijk[2][9] = -0.30632197804624;
     //Nitrogen-Carbon dioxide
-    dijk[5][1] = 2;  tijk[5][1] = 1.85;  cijk[5][1] = 0;     eijk[5][1] = 0;    bijk[5][1] = 0;    gijk[5][1] = 0;    nijk[5][1] = 0.28661625028399
-    dijk[5][2] = 3;  tijk[5][2] = 1.4;   cijk[5][2] = 0;     eijk[5][2] = 0;    bijk[5][2] = 0;    gijk[5][2] = 0;    nijk[5][2] = -0.10919833861247
-    dijk[5][3] = 1;  tijk[5][3] = 3.2;   cijk[5][3] = 0.25;  eijk[5][3] = 0.5;  bijk[5][3] = 0.75; gijk[5][3] = 0.5;  nijk[5][3] = -1.137403208227
-    dijk[5][4] = 1;  tijk[5][4] = 2.5;   cijk[5][4] = 0.25;  eijk[5][4] = 0.5;  bijk[5][4] = 1;    gijk[5][4] = 0.5;  nijk[5][4] = 0.76580544237358
-    dijk[5][5] = 1;  tijk[5][5] = 8;     cijk[5][5] = 0;     eijk[5][5] = 0.5;  bijk[5][5] = 2;    gijk[5][5] = 0.5;  nijk[5][5] = 4.2638000926819E-03
-    dijk[5][6] = 2;  tijk[5][6] = 3.75;  cijk[5][6] = 0;     eijk[5][6] = 0.5;  bijk[5][6] = 3;    gijk[5][6] = 0.5;  nijk[5][6] = 0.17673538204534
+    dijk[5][1] = 2;  tijk[5][1] = 1.85;  cijk[5][1] = 0;     eijk[5][1] = 0;    bijk[5][1] = 0;    gijk[5][1] = 0;    nijk[5][1] = 0.28661625028399;
+    dijk[5][2] = 3;  tijk[5][2] = 1.4;   cijk[5][2] = 0;     eijk[5][2] = 0;    bijk[5][2] = 0;    gijk[5][2] = 0;    nijk[5][2] = -0.10919833861247;
+    dijk[5][3] = 1;  tijk[5][3] = 3.2;   cijk[5][3] = 0.25;  eijk[5][3] = 0.5;  bijk[5][3] = 0.75; gijk[5][3] = 0.5;  nijk[5][3] = -1.137403208227;
+    dijk[5][4] = 1;  tijk[5][4] = 2.5;   cijk[5][4] = 0.25;  eijk[5][4] = 0.5;  bijk[5][4] = 1;    gijk[5][4] = 0.5;  nijk[5][4] = 0.76580544237358;
+    dijk[5][5] = 1;  tijk[5][5] = 8;     cijk[5][5] = 0;     eijk[5][5] = 0.5;  bijk[5][5] = 2;    gijk[5][5] = 0.5;  nijk[5][5] = 4.2638000926819E-03;
+    dijk[5][6] = 2;  tijk[5][6] = 3.75;  cijk[5][6] = 0;     eijk[5][6] = 0.5;  bijk[5][6] = 3;    gijk[5][6] = 0.5;  nijk[5][6] = 0.17673538204534;
     //Nitrogen-Ethane
-    dijk[6][1] = 2;  tijk[6][1] = 0;     cijk[6][1] = 0;     eijk[6][1] = 0;    bijk[6][1] = 0;    gijk[6][1] = 0;    nijk[6][1] = -0.47376518126608
-    dijk[6][2] = 2;  tijk[6][2] = 0.05;  cijk[6][2] = 0;     eijk[6][2] = 0;    bijk[6][2] = 0;    gijk[6][2] = 0;    nijk[6][2] = 0.48961193461001
-    dijk[6][3] = 3;  tijk[6][3] = 0;     cijk[6][3] = 0;     eijk[6][3] = 0;    bijk[6][3] = 0;    gijk[6][3] = 0;    nijk[6][3] = -5.7011062090535E-03
-    dijk[6][4] = 1;  tijk[6][4] = 3.65;  cijk[6][4] = 1;     eijk[6][4] = 0.5;  bijk[6][4] = 1;    gijk[6][4] = 0.5;  nijk[6][4] = -0.1996682004132
-    dijk[6][5] = 2;  tijk[6][5] = 4.9;   cijk[6][5] = 1;     eijk[6][5] = 0.5;  bijk[6][5] = 1;    gijk[6][5] = 0.5;  nijk[6][5] = -0.69411103101723
-    dijk[6][6] = 2;  tijk[6][6] = 4.45;  cijk[6][6] = 0.875; eijk[6][6] = 0.5;  bijk[6][6] = 1.25; gijk[6][6] = 0.5;  nijk[6][6] = 0.69226192739021
+    dijk[6][1] = 2;  tijk[6][1] = 0;     cijk[6][1] = 0;     eijk[6][1] = 0;    bijk[6][1] = 0;    gijk[6][1] = 0;    nijk[6][1] = -0.47376518126608;
+    dijk[6][2] = 2;  tijk[6][2] = 0.05;  cijk[6][2] = 0;     eijk[6][2] = 0;    bijk[6][2] = 0;    gijk[6][2] = 0;    nijk[6][2] = 0.48961193461001;
+    dijk[6][3] = 3;  tijk[6][3] = 0;     cijk[6][3] = 0;     eijk[6][3] = 0;    bijk[6][3] = 0;    gijk[6][3] = 0;    nijk[6][3] = -5.7011062090535E-03;
+    dijk[6][4] = 1;  tijk[6][4] = 3.65;  cijk[6][4] = 1;     eijk[6][4] = 0.5;  bijk[6][4] = 1;    gijk[6][4] = 0.5;  nijk[6][4] = -0.1996682004132;
+    dijk[6][5] = 2;  tijk[6][5] = 4.9;   cijk[6][5] = 1;     eijk[6][5] = 0.5;  bijk[6][5] = 1;    gijk[6][5] = 0.5;  nijk[6][5] = -0.69411103101723;
+    dijk[6][6] = 2;  tijk[6][6] = 4.45;  cijk[6][6] = 0.875; eijk[6][6] = 0.5;  bijk[6][6] = 1.25; gijk[6][6] = 0.5;  nijk[6][6] = 0.69226192739021;
     //Methane-Hydrogen
-    dijk[7][1] = 1;  tijk[7][1] = 2;     cijk[7][1] = 0;     eijk[7][1] = 0;    bijk[7][1] = 0;    gijk[7][1] = 0;    nijk[7][1] = -0.25157134971934
-    dijk[7][2] = 3;  tijk[7][2] = -1;    cijk[7][2] = 0;     eijk[7][2] = 0;    bijk[7][2] = 0;    gijk[7][2] = 0;    nijk[7][2] = -6.2203841111983E-03
-    dijk[7][3] = 3;  tijk[7][3] = 1.75;  cijk[7][3] = 0;     eijk[7][3] = 0;    bijk[7][3] = 0;    gijk[7][3] = 0;    nijk[7][3] = 0.088850315184396
-    dijk[7][4] = 4;  tijk[7][4] = 1.4;   cijk[7][4] = 0;     eijk[7][4] = 0;    bijk[7][4] = 0;    gijk[7][4] = 0;    nijk[7][4] = -0.035592212573239
+    dijk[7][1] = 1;  tijk[7][1] = 2;     cijk[7][1] = 0;     eijk[7][1] = 0;    bijk[7][1] = 0;    gijk[7][1] = 0;    nijk[7][1] = -0.25157134971934;
+    dijk[7][2] = 3;  tijk[7][2] = -1;    cijk[7][2] = 0;     eijk[7][2] = 0;    bijk[7][2] = 0;    gijk[7][2] = 0;    nijk[7][2] = -6.2203841111983E-03;
+    dijk[7][3] = 3;  tijk[7][3] = 1.75;  cijk[7][3] = 0;     eijk[7][3] = 0;    bijk[7][3] = 0;    gijk[7][3] = 0;    nijk[7][3] = 0.088850315184396;
+    dijk[7][4] = 4;  tijk[7][4] = 1.4;   cijk[7][4] = 0;     eijk[7][4] = 0;    bijk[7][4] = 0;    gijk[7][4] = 0;    nijk[7][4] = -0.035592212573239;
     //Methane-n-Butane][Methane-Isobutane][Ethane-Propane][Ethane-n-Butane,
     //Ethane-Isobutane][Propane-n-Butane][Propane-Isobutane][and n-Butane-Isobutane
-    dijk[10][1] = 1;  tijk[10][1] = 1;     cijk[10][1] = 0;  eijk[10][1] = 0;   bijk[10][1] = 0;   gijk[10][1] = 0;   nijk[10][1] = 2.5574776844118
-    dijk[10][2] = 1;  tijk[10][2] = 1.55;  cijk[10][2] = 0;  eijk[10][2] = 0;   bijk[10][2] = 0;   gijk[10][2] = 0;   nijk[10][2] = -7.9846357136353
-    dijk[10][3] = 1;  tijk[10][3] = 1.7;   cijk[10][3] = 0;  eijk[10][3] = 0;   bijk[10][3] = 0;   gijk[10][3] = 0;   nijk[10][3] = 4.7859131465806
-    dijk[10][4] = 2;  tijk[10][4] = 0.25;  cijk[10][4] = 0;  eijk[10][4] = 0;   bijk[10][4] = 0;   gijk[10][4] = 0;   nijk[10][4] = -0.73265392369587
-    dijk[10][5] = 2;  tijk[10][5] = 1.35;  cijk[10][5] = 0;  eijk[10][5] = 0;   bijk[10][5] = 0;   gijk[10][5] = 0;   nijk[10][5] = 1.3805471345312
-    dijk[10][6] = 3;  tijk[10][6] = 0;     cijk[10][6] = 0;  eijk[10][6] = 0;   bijk[10][6] = 0;   gijk[10][6] = 0;   nijk[10][6] = 0.28349603476365
-    dijk[10][7] = 3;  tijk[10][7] = 1.25;  cijk[10][7] = 0;  eijk[10][7] = 0;   bijk[10][7] = 0;   gijk[10][7] = 0;   nijk[10][7] = -0.49087385940425
-    dijk[10][8] = 4;  tijk[10][8] = 0;     cijk[10][8] = 0;  eijk[10][8] = 0;   bijk[10][8] = 0;   gijk[10][8] = 0;   nijk[10][8] = -0.10291888921447
-    dijk[10][9] = 4;  tijk[10][9] = 0.7;   cijk[10][9] = 0;  eijk[10][9] = 0;   bijk[10][9] = 0;   gijk[10][9] = 0;   nijk[10][9] = 0.11836314681968
-    dijk[10][10] = 4; tijk[10][10] = 5.4;  cijk[10][10] = 0; eijk[10][10] = 0;  bijk[10][10] = 0;  gijk[10][10] = 0;  nijk[10][10] = 5.5527385721943E-05
-
+    dijk[10][1] = 1;  tijk[10][1] = 1;     cijk[10][1] = 0;  eijk[10][1] = 0;   bijk[10][1] = 0;   gijk[10][1] = 0;   nijk[10][1] = 2.5574776844118;
+    dijk[10][2] = 1;  tijk[10][2] = 1.55;  cijk[10][2] = 0;  eijk[10][2] = 0;   bijk[10][2] = 0;   gijk[10][2] = 0;   nijk[10][2] = -7.9846357136353;
+    dijk[10][3] = 1;  tijk[10][3] = 1.7;   cijk[10][3] = 0;  eijk[10][3] = 0;   bijk[10][3] = 0;   gijk[10][3] = 0;   nijk[10][3] = 4.7859131465806;
+    dijk[10][4] = 2;  tijk[10][4] = 0.25;  cijk[10][4] = 0;  eijk[10][4] = 0;   bijk[10][4] = 0;   gijk[10][4] = 0;   nijk[10][4] = -0.73265392369587;
+    dijk[10][5] = 2;  tijk[10][5] = 1.35;  cijk[10][5] = 0;  eijk[10][5] = 0;   bijk[10][5] = 0;   gijk[10][5] = 0;   nijk[10][5] = 1.3805471345312;
+    dijk[10][6] = 3;  tijk[10][6] = 0;     cijk[10][6] = 0;  eijk[10][6] = 0;   bijk[10][6] = 0;   gijk[10][6] = 0;   nijk[10][6] = 0.28349603476365;
+    dijk[10][7] = 3;  tijk[10][7] = 1.25;  cijk[10][7] = 0;  eijk[10][7] = 0;   bijk[10][7] = 0;   gijk[10][7] = 0;   nijk[10][7] = -0.49087385940425;
+    dijk[10][8] = 4;  tijk[10][8] = 0;     cijk[10][8] = 0;  eijk[10][8] = 0;   bijk[10][8] = 0;   gijk[10][8] = 0;   nijk[10][8] = -0.10291888921447;
+    dijk[10][9] = 4;  tijk[10][9] = 0.7;   cijk[10][9] = 0;  eijk[10][9] = 0;   bijk[10][9] = 0;   gijk[10][9] = 0;   nijk[10][9] = 0.11836314681968;
+    dijk[10][10] = 4; tijk[10][10] = 5.4;  cijk[10][10] = 0; eijk[10][10] = 0;  bijk[10][10] = 0;  gijk[10][10] = 0;  nijk[10][10] = 5.5527385721943E-05;
     //Generalized parameters
-    fij[1][2] = 1                //Methane-Nitrogen
-    fij[1][3] = 1                //Methane-CO2
-    fij[1][4] = 1                //Methane-Ethane
-    fij[1][5] = 1                //Methane-Propane
-    fij[2][3] = 1                //Nitrogen-CO2
-    fij[2][4] = 1                //Nitrogen-Ethane
-    fij[1][15] = 1               //Methane-Hydrogen
-    fij[1][6] = 0.771035405688   //Methane-Isobutane
-    fij[1][7] = 1                //Methane-n-Butane
-    fij[4][5] = 0.13042476515    //Ethane-Propane
-    fij[4][6] = 0.260632376098   //Ethane-Isobutane
-    fij[4][7] = 0.281570073085   //Ethane-n-Butane
-    fij[5][6] = -0.0551609771024 //Propane-Isobutane
-    fij[5][7] = 0.0312572600489  //Propane-n-Butane
-    fij[6][7] = -0.0551240293009 //Isobutane-n-Butane
+    fij[1][2] = 1;                //Methane-Nitrogen
+    fij[1][3] = 1;                //Methane-CO2
+    fij[1][4] = 1;                //Methane-Ethane
+    fij[1][5] = 1;                //Methane-Propane
+    fij[2][3] = 1;                //Nitrogen-CO2
+    fij[2][4] = 1;                //Nitrogen-Ethane
+    fij[1][15] = 1;               //Methane-Hydrogen
+    fij[1][6] = 0.771035405688;   //Methane-Isobutane
+    fij[1][7] = 1;                //Methane-n-Butane
+    fij[4][5] = 0.13042476515;    //Ethane-Propane
+    fij[4][6] = 0.260632376098;   //Ethane-Isobutane
+    fij[4][7] = 0.281570073085;   //Ethane-n-Butane
+    fij[5][6] = -0.0551609771024; //Propane-Isobutane
+    fij[5][7] = 0.0312572600489;  //Propane-n-Butane
+    fij[6][7] = -0.0551240293009; //Isobutane-n-Butane
     //Model numbers for binary mixtures with no excess functions (mn=-1)
     for (i = 1 ; i<= MaxFlds; i++){
       mNumb[i][i] = -1;
@@ -1283,27 +592,27 @@ let GERG={
     mNumb[5][7] = 10;
     mNumb[6][7] = 10;
     //Ideal gas parameters
-    n0i[1][3] = 4.00088;  n0i[1][4] = 0.76315;  n0i[1][5] = 0.0046;   n0i[1][6] = 8.74432;  n0i[1][7] = -4.46921; n0i[1][1] = 29.83843397;  n0i[1][2] = -15999.69151
-    n0i[2][3] = 3.50031;  n0i[2][4] = 0.13732;  n0i[2][5] = -0.1466;  n0i[2][6] = 0.90066;  n0i[2][7] = 0;        n0i[2][1] = 17.56770785;  n0i[2][2] = -2801.729072
-    n0i[3][3] = 3.50002;  n0i[3][4] = 2.04452;  n0i[3][5] = -1.06044; n0i[3][6] = 2.03366;  n0i[3][7] = 0.01393;  n0i[3][1] = 20.65844696;  n0i[3][2] = -4902.171516
-    n0i[4][3] = 4.00263;  n0i[4][4] = 4.33939;  n0i[4][5] = 1.23722;  n0i[4][6] = 13.1974;  n0i[4][7] = -6.01989; n0i[4][1] = 36.73005938;  n0i[4][2] = -23639.65301
-    n0i[5][3] = 4.02939;  n0i[5][4] = 6.60569;  n0i[5][5] = 3.197;    n0i[5][6] = 19.1921;  n0i[5][7] = -8.37267; n0i[5][1] = 44.70909619;  n0i[5][2] = -31236.63551
-    n0i[6][3] = 4.06714;  n0i[6][4] = 8.97575;  n0i[6][5] = 5.25156;  n0i[6][6] = 25.1423;  n0i[6][7] = 16.1388;  n0i[6][1] = 34.30180349;  n0i[6][2] = -38525.50276
-    n0i[7][3] = 4.33944;  n0i[7][4] = 9.44893;  n0i[7][5] = 6.89406;  n0i[7][6] = 24.4618;  n0i[7][7] = 14.7824;  n0i[7][1] = 36.53237783;  n0i[7][2] = -38957.80933
-    n0i[8][3] = 4;        n0i[8][4] = 11.7618;  n0i[8][5] = 20.1101;  n0i[8][6] = 33.1688;  n0i[8][7] = 0;        n0i[8][1] = 43.17218626;  n0i[8][2] = -51198.30946
-    n0i[9][3] = 4;        n0i[9][4] = 8.95043;  n0i[9][5] = 21.836;   n0i[9][6] = 33.4032;  n0i[9][7] = 0;        n0i[9][1] = 42.67837089;  n0i[9][2] = -45215.83
-    n0i[10][3] = 4;       n0i[10][4] = 11.6977; n0i[10][5] = 26.8142; n0i[10][6] = 38.6164; n0i[10][7] = 0;       n0i[10][1] = 46.99717188; n0i[10][2] = -52746.83318
-    n0i[11][3] = 4;       n0i[11][4] = 13.7266; n0i[11][5] = 30.4707; n0i[11][6] = 43.5561; n0i[11][7] = 0;       n0i[11][1] = 52.07631631; n0i[11][2] = -57104.81056
-    n0i[12][3] = 4;       n0i[12][4] = 15.6865; n0i[12][5] = 33.8029; n0i[12][6] = 48.1731; n0i[12][7] = 0;       n0i[12][1] = 57.25830934; n0i[12][2] = -60546.76385
-    n0i[13][3] = 4;       n0i[13][4] = 18.0241; n0i[13][5] = 38.1235; n0i[13][6] = 53.3415; n0i[13][7] = 0;       n0i[13][1] = 62.09646901; n0i[13][2] = -66600.12837
-    n0i[14][3] = 4;       n0i[14][4] = 21.0069; n0i[14][5] = 43.4931; n0i[14][6] = 58.3657; n0i[14][7] = 0;       n0i[14][1] = 65.93909154; n0i[14][2] = -74131.45483
-    n0i[15][3] = 2.47906; n0i[15][4] = 0.95806; n0i[15][5] = 0.45444; n0i[15][6] = 1.56039; n0i[15][7] = -1.3756; n0i[15][1] = 13.07520288; n0i[15][2] = -5836.943696
-    n0i[16][3] = 3.50146; n0i[16][4] = 1.07558; n0i[16][5] = 1.01334; n0i[16][6] = 0;       n0i[16][7] = 0;       n0i[16][1] = 16.8017173;  n0i[16][2] = -2318.32269
-    n0i[17][3] = 3.50055; n0i[17][4] = 1.02865; n0i[17][5] = 0.00493; n0i[17][6] = 0;       n0i[17][7] = 0;       n0i[17][1] = 17.45786899; n0i[17][2] = -2635.244116
-    n0i[18][3] = 4.00392; n0i[18][4] = 0.01059; n0i[18][5] = 0.98763; n0i[18][6] = 3.06904; n0i[18][7] = 0;       n0i[18][1] = 21.57882705; n0i[18][2] = -7766.733078
-    n0i[19][3] = 4;       n0i[19][4] = 3.11942; n0i[19][5] = 1.00243; n0i[19][6] = 0;       n0i[19][7] = 0;       n0i[19][1] = 21.5830944;  n0i[19][2] = -6069.035869
-    n0i[20][3] = 2.5;     n0i[20][4] = 0;       n0i[20][5] = 0;       n0i[20][6] = 0;       n0i[20][7] = 0;       n0i[20][1] = 10.04639507; n0i[20][2] = -745.375
-    n0i[21][3] = 2.5;     n0i[21][4] = 0;       n0i[21][5] = 0;       n0i[21][6] = 0;       n0i[21][7] = 0;       n0i[21][1] = 10.04639507; n0i[21][2] = -745.375
+    n0i[1][3] = 4.00088;  n0i[1][4] = 0.76315;  n0i[1][5] = 0.0046;   n0i[1][6] = 8.74432;  n0i[1][7] = -4.46921; n0i[1][1] = 29.83843397;  n0i[1][2] = -15999.69151;
+    n0i[2][3] = 3.50031;  n0i[2][4] = 0.13732;  n0i[2][5] = -0.1466;  n0i[2][6] = 0.90066;  n0i[2][7] = 0;        n0i[2][1] = 17.56770785;  n0i[2][2] = -2801.729072;
+    n0i[3][3] = 3.50002;  n0i[3][4] = 2.04452;  n0i[3][5] = -1.06044; n0i[3][6] = 2.03366;  n0i[3][7] = 0.01393;  n0i[3][1] = 20.65844696;  n0i[3][2] = -4902.171516;
+    n0i[4][3] = 4.00263;  n0i[4][4] = 4.33939;  n0i[4][5] = 1.23722;  n0i[4][6] = 13.1974;  n0i[4][7] = -6.01989; n0i[4][1] = 36.73005938;  n0i[4][2] = -23639.65301;
+    n0i[5][3] = 4.02939;  n0i[5][4] = 6.60569;  n0i[5][5] = 3.197;    n0i[5][6] = 19.1921;  n0i[5][7] = -8.37267; n0i[5][1] = 44.70909619;  n0i[5][2] = -31236.63551;
+    n0i[6][3] = 4.06714;  n0i[6][4] = 8.97575;  n0i[6][5] = 5.25156;  n0i[6][6] = 25.1423;  n0i[6][7] = 16.1388;  n0i[6][1] = 34.30180349;  n0i[6][2] = -38525.50276;
+    n0i[7][3] = 4.33944;  n0i[7][4] = 9.44893;  n0i[7][5] = 6.89406;  n0i[7][6] = 24.4618;  n0i[7][7] = 14.7824;  n0i[7][1] = 36.53237783;  n0i[7][2] = -38957.80933;
+    n0i[8][3] = 4;        n0i[8][4] = 11.7618;  n0i[8][5] = 20.1101;  n0i[8][6] = 33.1688;  n0i[8][7] = 0;        n0i[8][1] = 43.17218626;  n0i[8][2] = -51198.30946;
+    n0i[9][3] = 4;        n0i[9][4] = 8.95043;  n0i[9][5] = 21.836;   n0i[9][6] = 33.4032;  n0i[9][7] = 0;        n0i[9][1] = 42.67837089;  n0i[9][2] = -45215.83;
+    n0i[10][3] = 4;       n0i[10][4] = 11.6977; n0i[10][5] = 26.8142; n0i[10][6] = 38.6164; n0i[10][7] = 0;       n0i[10][1] = 46.99717188; n0i[10][2] = -52746.83318;
+    n0i[11][3] = 4;       n0i[11][4] = 13.7266; n0i[11][5] = 30.4707; n0i[11][6] = 43.5561; n0i[11][7] = 0;       n0i[11][1] = 52.07631631; n0i[11][2] = -57104.81056;
+    n0i[12][3] = 4;       n0i[12][4] = 15.6865; n0i[12][5] = 33.8029; n0i[12][6] = 48.1731; n0i[12][7] = 0;       n0i[12][1] = 57.25830934; n0i[12][2] = -60546.76385;
+    n0i[13][3] = 4;       n0i[13][4] = 18.0241; n0i[13][5] = 38.1235; n0i[13][6] = 53.3415; n0i[13][7] = 0;       n0i[13][1] = 62.09646901; n0i[13][2] = -66600.12837;
+    n0i[14][3] = 4;       n0i[14][4] = 21.0069; n0i[14][5] = 43.4931; n0i[14][6] = 58.3657; n0i[14][7] = 0;       n0i[14][1] = 65.93909154; n0i[14][2] = -74131.45483;
+    n0i[15][3] = 2.47906; n0i[15][4] = 0.95806; n0i[15][5] = 0.45444; n0i[15][6] = 1.56039; n0i[15][7] = -1.3756; n0i[15][1] = 13.07520288; n0i[15][2] = -5836.943696;
+    n0i[16][3] = 3.50146; n0i[16][4] = 1.07558; n0i[16][5] = 1.01334; n0i[16][6] = 0;       n0i[16][7] = 0;       n0i[16][1] = 16.8017173;  n0i[16][2] = -2318.32269;
+    n0i[17][3] = 3.50055; n0i[17][4] = 1.02865; n0i[17][5] = 0.00493; n0i[17][6] = 0;       n0i[17][7] = 0;       n0i[17][1] = 17.45786899; n0i[17][2] = -2635.244116;
+    n0i[18][3] = 4.00392; n0i[18][4] = 0.01059; n0i[18][5] = 0.98763; n0i[18][6] = 3.06904; n0i[18][7] = 0;       n0i[18][1] = 21.57882705; n0i[18][2] = -7766.733078;
+    n0i[19][3] = 4;       n0i[19][4] = 3.11942; n0i[19][5] = 1.00243; n0i[19][6] = 0;       n0i[19][7] = 0;       n0i[19][1] = 21.5830944;  n0i[19][2] = -6069.035869;
+    n0i[20][3] = 2.5;     n0i[20][4] = 0;       n0i[20][5] = 0;       n0i[20][6] = 0;       n0i[20][7] = 0;       n0i[20][1] = 10.04639507; n0i[20][2] = -745.375;
+    n0i[21][3] = 2.5;     n0i[21][4] = 0;       n0i[21][5] = 0;       n0i[21][6] = 0;       n0i[21][7] = 0;       n0i[21][1] = 10.04639507; n0i[21][2] = -745.375;
 
     th0i[1][4] = 820.659;  th0i[1][5] = 178.41;   th0i[1][6] = 1062.82;  th0i[1][7] = 1090.53;
     th0i[2][4] = 662.738;  th0i[2][5] = 680.562;  th0i[2][6] = 1740.06;  th0i[2][7] = 0;
@@ -1326,48 +635,7 @@ let GERG={
     th0i[19][4] = 1833.63; th0i[19][5] = 847.181; th0i[19][6] = 0;       th0i[19][7] = 0;
     th0i[20][4] = 0;       th0i[20][5] = 0;       th0i[20][6] = 0;       th0i[20][7] = 0;
     th0i[21][4] = 0;       th0i[21][5] = 0;       th0i[21][6] = 0;       th0i[21][7] = 0;
-
-    GERG.Setup2()
-
-    for (i = 1 ; i<=MaxMdl; i++){
-      for (j = 1 ; j<=MaxTrmM; j++){
-        gijk[i][j] = -cijk[i][j] * Math.pow(eijk[i][j],2) + bijk[i][j] * gijk[i][j];
-        eijk[i][j] = 2 * cijk[i][j] * eijk[i][j] - bijk[i][j];
-        cijk[i][j] = -cijk[i][j];
-      }
-    }
-    //Ideal gas terms
-    T0 = 298.15;
-    d0 = 101.325 / RGERG / T0;
-    for (i = 1 ; i <= MaxFlds; i++){
-      n0i[i][3] = n0i[i][3] - 1;
-      n0i[i][2] = n0i[i][2] + T0;
-      for (j = 1 ; j <= 7; j++){n0i[i][j] = Rsr * n0i[i][j]}
-      n0i[i][2] = n0i[i][2] - T0;
-      n0i[i][1] = n0i[i][1] - Math.log(d0);
-    }
-    return;
-    //Code to produce nearly exact values for n0(1) and n0(2)
-    //This is not called in the current code, but included below to show how the values were calculated.  The Exit Sub above can be removed to call this code.
-    T0 = 298.15;
-    d0 = 101.325 / RGERG / T0;
-    for (i = 1 ; i <= MaxFlds; i++){
-      n1 = 0; n2 = 0;
-      if (th0i[i][4] > Epsilon){n2 = n2 - n0i[i][4] * th0i[i][4] / Tanh(th0i[i][4] / T0)}; n1 = n1 - n0i[i][4] * Math.log(Sinh(th0i[i][4] / T0));
-      if (th0i[i][5] > Epsilon){n2 = n2 + n0i[i][5] * th0i[i][5] * Tanh(th0i[i][5] / T0)}; n1 = n1 + n0i[i][5] * Math.log(Cosh(th0i[i][5] / T0));
-      if (th0i[i][6] > Epsilon){n2 = n2 - n0i[i][6] * th0i[i][6] / Tanh(th0i[i][6] / T0)}; n1 = n1 - n0i[i][6] * Math.log(Sinh(th0i[i][6] / T0));
-      if (th0i[i][7] > Epsilon){n2 = n2 + n0i[i][7] * th0i[i][7] * Tanh(th0i[i][7] / T0)}; n1 = n1 + n0i[i][7] * Math.log(Cosh(th0i[i][7] / T0));
-      n0i[i][3] = n0i[i][3] - 1;
-      n0i[i][1] = n1 - n2 / T0 + n0i[i][3] * (1 + Math.log(T0));
-      n0i[i][2] = n2 - n0i[i][3] * T0;
-      for (j = 1 ; j <= 7; j++){n0i[i][j] = Rsr * n0i[i][j]};
-      n0i[i][2] = n0i[i][2] - T0;
-      n0i[i][1] = n0i[i][1] - Math.log(d0);
-    }
-  },
-  Setup2(){
-  //The GERG setup routines are split in two to avoid "procedure too large" errors.
-
+    
     //Mixture parameters for reducing variables
     bvij[1][2] = 0.998721377;   gvij[1][2] = 1.013950311;   btij[1][2] = 0.99809883;    gtij[1][2] = 0.979273013;   //CH4-N2
     bvij[1][3] = 0.999518072;   gvij[1][3] = 1.002806594;   btij[1][3] = 1.02262449;    gtij[1][3] = 0.975665369;   //CH4-CO2
@@ -1459,10 +727,8 @@ let GERG={
     bvij[5][19] = 0.936811219;  gvij[5][19] = 1.010593999;  btij[5][19] = 0.992573556;  gtij[5][19] = 0.905829247;  //C3H8-H2S
     bvij[5][20] = 1;            gvij[5][20] = 1;            btij[5][20] = 1;            gtij[5][20] = 1;            //C3H8-He
     bvij[5][21] = 1;            gvij[5][21] = 1;            btij[5][21] = 1;            gtij[5][21] = 1;            //C3H8-Ar
-
     //The beta values for isobutane+butane are the reciprocal values of those in the GERG-2008 publication because the order was reversed in this work.
     bvij[6][7] = 0.999120311;   gvij[6][7] = 1.00041444;    btij[6][7] = 0.999922459;   gtij[6][7] = 1.001432824;   //C4H10-i-C4H10
-
     bvij[6][8] = 1;             gvij[6][8] = 1.002284353;   btij[6][8] = 1;             gtij[6][8] = 1.001835788;   //i-C4H10-i-C5H1
     bvij[6][9] = 1;             gvij[6][9] = 1.002779804;   btij[6][9] = 1;             gtij[6][9] = 1.002495889;   //i-C4H10-C5H12
     bvij[6][10] = 1;            gvij[6][10] = 1.010493989;  btij[6][10] = 1;            gtij[6][10] = 1.006018054;  //i-C4H10-C6H14
@@ -1582,7 +848,6 @@ let GERG={
     bvij[19][20] = 1;           gvij[19][20] = 1;           btij[19][20] = 1;           gtij[19][20] = 1;           //H2S-He
     bvij[19][21] = 1;           gvij[19][21] = 1;           btij[19][21] = 1;           gtij[19][21] = 1;           //H2S-Ar
     bvij[20][21] = 1;           gvij[20][21] = 1;           btij[20][21] = 1;           gtij[20][21] = 1;           //He-Ar
-
     for (let i = 1 ; i <= MaxFlds; i++){
       bvij[i][i] = 1;
       btij[i][i] = 1;
@@ -1595,5 +860,574 @@ let GERG={
         btij[i][j] = Math.pow(btij[i][j] , 2);
       }
     }
-  },
+    for (i = 1 ; i<=MaxMdl; i++){
+      for (j = 1 ; j<=MaxTrmM; j++){
+        gijk[i][j] = -cijk[i][j] * Math.pow(eijk[i][j],2) + bijk[i][j] * gijk[i][j];
+        eijk[i][j] = 2 * cijk[i][j] * eijk[i][j] - bijk[i][j];
+        cijk[i][j] = -cijk[i][j];
+      }
+    }
+    //Ideal gas terms
+    T0 = 298.15;
+    d0 = 101.325 / RGERG / T0;
+    for (i = 1 ; i <= MaxFlds; i++){
+      n0i[i][3] = n0i[i][3] - 1;
+      n0i[i][2] = n0i[i][2] + T0;
+      for (j = 1 ; j <= 7; j++){n0i[i][j] = Rsr * n0i[i][j]}
+      n0i[i][2] = n0i[i][2] - T0;
+      n0i[i][1] = n0i[i][1] - Math.log(d0);
+    }
+    return;
+    //Code to produce nearly exact values for n0(1) and n0(2)
+    //This is not called in the current code, but included below to show how the values were calculated.  The Exit Sub above can be removed to call this code.
+    T0 = 298.15;
+    d0 = 101.325 / RGERG / T0;
+    for (i = 1 ; i <= MaxFlds; i++){
+      n1 = 0; n2 = 0;
+      if (th0i[i][4] > Epsilon){n2 = n2 - n0i[i][4] * th0i[i][4] / Tanh(th0i[i][4] / T0)}; n1 = n1 - n0i[i][4] * Math.log(Sinh(th0i[i][4] / T0));
+      if (th0i[i][5] > Epsilon){n2 = n2 + n0i[i][5] * th0i[i][5] * Tanh(th0i[i][5] / T0)}; n1 = n1 + n0i[i][5] * Math.log(Cosh(th0i[i][5] / T0));
+      if (th0i[i][6] > Epsilon){n2 = n2 - n0i[i][6] * th0i[i][6] / Tanh(th0i[i][6] / T0)}; n1 = n1 - n0i[i][6] * Math.log(Sinh(th0i[i][6] / T0));
+      if (th0i[i][7] > Epsilon){n2 = n2 + n0i[i][7] * th0i[i][7] * Tanh(th0i[i][7] / T0)}; n1 = n1 + n0i[i][7] * Math.log(Cosh(th0i[i][7] / T0));
+      n0i[i][3] = n0i[i][3] - 1;
+      n0i[i][1] = n1 - n2 / T0 + n0i[i][3] * (1 + Math.log(T0));
+      n0i[i][2] = n2 - n0i[i][3] * T0;
+      for (j = 1 ; j <= 7; j++){n0i[i][j] = Rsr * n0i[i][j]};
+      n0i[i][2] = n0i[i][2] - T0;
+      n0i[i][1] = n0i[i][1] - Math.log(d0);
+    }
+}
+class FlowStream {
+  constructor() {
+    this.x = Array(22).fill(0); //mol
+    this.VolumetricFlow = 0; //m3/hr
+    this.Pressure=100; //KPa
+    this.Temperature=273.15; //Kelvin
+    this.MolarMass=0; //g/mol
+    this.Density=0.04464; //mol/l
+    this.CompressibilityFactor=0;
+    this.dPdD=0; // kPa/(mol-l)
+    this.d2PdD2=0;
+    this.d2PdTD=0;
+    this.dPdT=0; // kPa/K
+    this.U=0; //J/mol
+    this.H=0; //J/mol
+    this.S=0; //J/mol
+    this.Cv=0; // J/(mol-K)
+    this.Cp=0; // J/(mol-K)
+    this.SpeedOfSound=0; //m/sec
+    this.G=0; //J/mol
+    this.JouleThomson=0; //K/kPa
+    this.IsentropicExponent=0;
+    this.A=0; //J/mol
+    this.ierr=0;
+    this.herr='';
+  }
+  MolarMassGERG(){
+    //Sub MolarMassGERG(x)
+    //Calculate molar mass of the mixture with the compositions contained in the x() input array
+    //
+    //Inputs;
+    //   x() - Composition (mole fraction)
+    //         Do not send mole percents or mass fractions in the x() array, otherwise the output will be incorrect.
+    //         The sum of the compositions in the x() array must be equal to one.
+    //         The order of the fluids in this array is given at the top of this code.
+    //
+    //Outputs;
+    //    Mm - Molar mass (g/mol)
+    this.MolarMass = 0;
+    for (let i = 1; i <= NcGERG; i++){this.MolarMass = this.MolarMass + this.x[i] * MMiGERG[i]}
+  }
+  PressureGERG(){
+    //Sub PressureGERG(T, D, x, P, Z)
+    //Calculate pressure as a function of temperature and density.  The derivative d(P)/d(D) is also calculated
+    //for use in the iterative DensityGERG subroutine (and is only returned as a common variable).
+    //
+    //Inputs;
+    //     T - Temperature (K)
+    //     D - Density (mol/l)
+    //   x() - Composition (mole fraction)
+    //         Do not send mole percents or mass fractions in the x() array, otherwise the output will be incorrect.
+    //         The sum of the compositions in the x() array must be equal to one.
+    //Outputs;
+    //     P - Pressure (kPa)
+    //     Z - Compressibility factor
+    // dPdDsave - d(P)/d(D) [kPa/(mol/l)] (at constant temperature)
+    //          - This variable is cached in the common variables for use in the iterative density solver, but not returned as an argument.
+    let ar = this.AlpharGERG(0);
+    this.CompressibilityFactor = 1 + ar[0][1];
+    this.Pressure = this.Density * RGERG * this.Temperature * this.CompressibilityFactor;
+    dPdDsave = RGERG * this.Temperature * (1 + 2 * ar[0][1] + ar[0][2]);
+  }
+  CalculateDensity(iFlag){
+    //Sub DensityGERG(iFlag, T, P, x, D, ierr, herr)
+    //Calculate density as a function of temperature and pressure.  This is an iterative routine that calls PressureGERG
+    //to find the correct state point.  Generally only 6 iterations at most are required.
+    //If the iteration fails to converge, the ideal gas density and an error message are returned.
+    //No checks are made to determine the phase boundary, which would have guaranteed that the output is in the gas phase (or liquid phase when iFlag=2).
+    //It is up to the user to locate the phase boundary, and thus identify the phase of the T and P inputs.
+    //If the state point is 2-phase, the output density will represent a metastable state.
+    //Inputs;
+    // iFlag - Set to 0 for strict pressure solver in the gas phase without checks (fastest mode, but output state may not be stable single phase)
+    //         Set to 1 to make checks for possible 2-phase states (result may still not be stable single phase, but many unstable states will be identified)
+    //         Set to 2 to search for liquid phase (and make the same checks when iFlag=1)
+    //     T - Temperature (K)
+    //     P - Pressure (kPa)
+    //   x() - Composition (mole fraction)
+    //(An initial guess for the density can be sent in D as the negative of the guess for roots that are in the liquid phase instead of using iFlag=2)
+    //Outputs;
+    //     D - Density (mol/l)
+    //  ierr - Error number (0 indicates no error)
+    //  herr - Error message if ierr is not equal to zero
+    let nFail = 0;
+    let iFail = 0;
+    let plog;
+    let vlog;
+    let P2;
+    let dpdlv;
+    let vdiff;
+    let tolr = 0.0000001; //tolr = 0.0000001
+    let vinc;
+    let Tcx;
+    let Dcx;
+    let PP;
+    let it=1;
+    if(this.Pressure < Epsilon) {this.Density=0;return}
+    [Tcx, Dcx]=this.PseudoCriticalPointGERG();
+    if (this.Density > -Epsilon){
+      this.Density = this.Pressure / RGERG / this.Temperature;        //Ideal gas estimate for vapor phase
+      if(iFlag == 2){this.Density=Dcx*3};  //Initial estimate for liquid phase
+    }else{
+      this.Density = Math.abs(this.Density);          //If D<0, then use as initial estimate
+    }
+    plog = Math.log(this.Pressure);
+    vlog = -Math.log(this.Density);
+    for(it = 1; it <= 50; it++){
+      if (vlog < -7 || vlog > 100 || it == 20 || it == 30 || it == 40 || iFail == 1){
+        //Current state is bad or iteration is taking too long.  Restart with completely different initial state
+        iFail = 0;
+        if(nFail > 2){
+          it = 51;
+          this.Density= this.Pressure / RGERG / this.Temperature;
+          this.ierr=1;
+          this.herr='Calculation failed to converge in GERG method, ideal gas density returned.';            
+          return;
+        }
+        nFail = nFail + 1;
+        if (nFail == 1){
+          this.Density = Dcx * 3;    //If vapor phase search fails, look for root in liquid region
+        }else if(nFail == 2){
+          this.Density = Dcx * 2.5;  //If liquid phase search fails, look for root between liquid and critical regions
+        }else if(nFail == 3){
+          this.Density = Dcx * 2;    //If search fails, look for root in critical region
+        }
+        vlog = -Math.log(this.Density)
+      }
+      this.Density = Math.exp(-vlog);
+      this.PressureGERG();
+      P2=this.Pressure;
+      this.CompressibilityFactor;
+      //PressureGERG(T, D, x, P2, Z)
+      if (dPdDsave < Epsilon || P2 < Epsilon){
+        //Current state is 2-phase, try locating a different state that is single phase
+        vinc = 0.1;
+        if(this.Density > Dcx){vinc = -0.1};
+        if(it > 5){vinc = vinc * 0.5};
+        if(it > 10 && it < 20){vinc = vinc * 0.2};
+        vlog = vlog + vinc;
+      }else{
+        //Find the next density with a first order Newton's type iterative scheme, with
+        //log(P) as the known variable and log(v) as the unknown property.
+        //See AGA 8 publication for further information.
+        dpdlv = -this.Density * dPdDsave;     //d(p)/d[log(v)]
+        vdiff = (Math.log(P2) - plog) * P2 / dpdlv;
+        vlog = vlog - vdiff;
+        if(Math.abs(vdiff)<tolr){
+          //Check to see if state is possibly 2-phase, and if so restart
+          if(dPdDsave < 0){
+            iFail = 1;
+          }else{
+            this.Density = Math.exp(-vlog);
+            //If requested, check to see if point is possibly 2-phase
+            if (iFlag > 0) {
+              this.CalculateProperties();
+              //PropertiesGERG(T, D, x, PP, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa);
+              if(PP <= 0 || this.dPdD <= 0 || this.d2PdTD <= 0){
+                it = 51;
+                this.Density=this.Pressure/RGERG/this.Temperature;
+                this.ierr=1;
+                this.herr='Calculation failed to converge in GERG method, ideal gas density returned.';            
+                return;
+              };
+              if(this.Cv <= 0 || this.Cp <= 0 || this.SpeedOfSound <= 0){
+                it = 51;
+                this.Density=this.Pressure/RGERG/this.Temperature;
+                this.ierr=1;
+                this.herr='Calculation failed to converge in GERG method, ideal gas density returned.';            
+                return;
+              };
+              it = 51;
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+  CalculateProperties(){
+    //Sub PropertiesGERG(T, D, x, P, Z, dPdD, d2PdD2, d2PdTD, dPdT, U, H, S, Cv, Cp, W, G, JT, Kappa, Optional A)
+    //Calculate thermodynamic properties as a function of temperature and density.
+    //If the density is not known, call subroutine DensityGERG first with the known values of pressure and temperature.
+    //Many of the formulas below do not appear in Part 2 of AGA 8, but rather in Part 1, which uses a dimensional Helmholtz equation with more direct formulas for quick calculation.
+    //Inputs;
+    //     T - Temperature (K)
+    //     D - Density (mol/l)
+    //   x() - Composition (mole fraction)
+    //Outputs;
+    //     P - Pressure (kPa)
+    //     Z - Compressibility factor
+    //  dPdD - First derivative of pressure with respect to density at constant temperature [kPa/(mol/l)]
+    //d2PdD2 - Second derivative of pressure with respect to density at constant temperature [kPa/(mol/l)^2]
+    //d2PdTD - Second derivative of pressure with respect to temperature and density [kPa/(mol/l)/K]
+    //  dPdT - First derivative of pressure with respect to temperature at constant density (kPa/K)
+    //     U - Internal energy (J/mol)
+    //     H - Enthalpy (J/mol)
+    //     S - Entropy [J/(mol-K)]
+    //    Cv - Isochoric heat capacity [J/(mol-K)]
+    //    Cp - Isobaric heat capacity [J/(mol-K)]
+    //     W - Speed of sound (m/s)
+    //     G - Gibbs energy (J/mol)
+    //    JT - Joule-Thomson coefficient (K/kPa)
+    // Kappa - Isentropic Exponent
+    //     A - Helmholtz energy (J/mol)
+    //Calculate molar mass
+    this.MolarMassGERG();
+    //Calculate the ideal gas Helmholtz energy, and its first and second derivatives with respect to temperature.
+    let a0=this.Alpha0GERG();
+    //Calculate the real gas Helmholtz energy, and its derivatives with respect to temperature and/or density.
+    let ar=this.AlpharGERG(1);
+    let RT = RGERG * this.Temperature;
+    this.CompressibilityFactor = 1 + ar[0][1];
+    this.Pressure = this.Density * RT * this.CompressibilityFactor;
+    this.dPdD = RT * (1 + 2 * ar[0][1] + ar[0][2]);
+    this.dPdT = this.Density * RGERG * (1 + ar[0][1] - ar[1][1]);
+    this.d2PdTD = RGERG * (1 + 2 * ar[0][1] + ar[0][2] - 2 * ar[1][1] - ar[1][2]);
+    this.A = RT * (a0[0] + ar[0][0]);
+    this.G = RT * (1 + ar[0][1] + a0[0] + ar[0][0]);
+    this.U = RT * (a0[1] + ar[1][0]);
+    this.H = RT * (1 + ar[0][1] + a0[1] + ar[1][0]);
+    this.S = RGERG * (a0[1] + ar[1][0] - a0[0] - ar[0][0]);
+    this.Cv = -RGERG * (a0[2] + ar[2][0]);
+    if(this.Density > Epsilon){
+      this.Cp = this.Cv + this.Temperature * Math.pow((this.dPdT / this.Density),2) / this.dPdD;
+      this.d2PdD2 = RT * (2 * ar[0][1] + 4 * ar[0][2] + ar[0][3]) / this.Density;
+      this.JouleThomson = (this.Temperature / this.Density * this.dPdT / this.dPdD - 1) / this.Cp / this.Density; //=(dB/dT*T-B)/Cp for an ideal gas, but dB/dT is not known
+    }else{
+      this.Cp = this.Cv + RGERG;
+      this.d2PdD2 = 0;
+      this.JouleThomson = 1E+20;
+    }
+    this.SpeedOfSound = 1000 * this.Cp / this.Cv * this.dPdD / this.MolarMass;
+    if (this.SpeedOfSound < 0){this.SpeedOfSound = 0};
+    this.IsentropicExponent = this.SpeedOfSound * this.MolarMass / (RT * 1000 * this.CompressibilityFactor);
+    this.SpeedOfSound = Math.sqrt(this.SpeedOfSound);
+  }
+  //The following routines are low-level routines that should not be called outside of this code.
+  ReducingParametersGERG(Tr, Dr){
+    //Private Sub ReducingParametersGERG(x, Tr, Dr)
+    //Calculate reducing variables.  Only need to call this if the composition has changed.
+    //
+    //Inputs;
+    //   x() - Composition (mole fraction)
+    //
+    //Outputs;
+    //    Tr - Reducing temperature (K)
+    //    Dr - Reducing density (mol/l)
+    let Vr;
+    let xij;
+    let F;
+    let i;
+    let j;
+    let icheck = 0;
+    //Check to see if a component fraction has changed.  If x is the same as the previous call, then exit.
+    for (i = 1; i <= NcGERG; i++){
+      if (Math.abs(this.x[i] - xold[i]) > 0.0000001){icheck = 1}
+      xold[i] = this.x[i];
+    }
+    if (icheck == 0){
+      Dr = Drold;
+      Tr = Trold;
+      return [Tr, Dr];
+    }
+    Told = 0;
+    Trold2 = 0;
+    //Calculate reducing variables for T and D
+    Dr = 0;
+    Vr = 0;
+    Tr = 0;
+    for (i = 1; i <= NcGERG; i++){
+      if (this.x[i] > Epsilon){
+        F = 1;
+        for (j = i; j <= NcGERG; j++){
+          if (this.x[j] > Epsilon){
+            xij = F * (this.x[i] * this.x[j]) * (this.x[i] + this.x[j]);
+            Vr = Vr + xij * gvij[i][j] / (bvij[i][j] * this.x[i] + this.x[j]);
+            Tr = Tr + xij * gtij[i][j] / (btij[i][j] * this.x[i] + this.x[j]);
+            F = 2;
+          }
+        }
+      }
+    }
+    if (Vr > Epsilon){Dr = 1 / Vr}
+    Drold = Dr;
+    Trold = Tr;
+    return [Tr,Dr];
+  }
+  Alpha0GERG(){
+    //Private Sub Alpha0GERG(T, D, x, a0)
+    //Calculate the ideal gas Helmholtz energy and its derivatives with respect to tau and delta.
+    //This routine is not needed when only P (or Z) is calculated.
+    //Inputs;
+    //     T - Temperature (K)
+    //     D - Density (mol/l)
+    //   x() - Composition (mole fraction)
+    //Outputs;
+    // a0(0) - Ideal gas Helmholtz energy (dimensionless [i.e., divided by RT])
+    // a0(1) - tau*partial(a0)/partial(tau)
+    // a0(2) - tau^2*partial^2(a0)/partial(tau)^2
+    let a0 = Array(3).fill(0);
+    let LogT;
+    let LogD;
+    let LogHyp;
+    let th0T;
+    let LogxD;
+    let SumHyp0;
+    let SumHyp1;
+    let SumHyp2;
+    let em;
+    let ep;
+    let hcn;
+    let hsn;
+    if (this.Density > Epsilon){LogD = Math.log(this.Density)}else{LogD = Math.log(Epsilon)}
+    LogT = Math.log(this.Temperature);
+    for (let i = 1; i <= NcGERG; i++){
+      if (this.x[i] > Epsilon){
+        LogxD = LogD + Math.log(this.x[i]);
+        SumHyp0 = 0;
+        SumHyp1 = 0;
+        SumHyp2 = 0;
+        for (let j = 4; j <= 7; j++){
+          if (th0i[i][j] > Epsilon){
+            th0T = th0i[i][j] / this.Temperature;
+            ep = Math.exp(th0T);
+            em = 1 / ep;
+            hsn = (ep - em)*0.5;
+            hcn = (ep + em)*0.5;
+            if(j == 4 || j == 6){
+              LogHyp = Math.log(Math.abs(hsn))
+              SumHyp0 = SumHyp0 + n0i[i][j] * LogHyp;
+              SumHyp1 = SumHyp1 + n0i[i][j] * th0T * hcn / hsn;
+              SumHyp2 = SumHyp2 + n0i[i][j] * Math.pow((th0T / hsn), 2);
+            }else{
+              LogHyp = Math.log(Math.abs(hcn));
+              SumHyp0 = SumHyp0 - n0i[i][j] * LogHyp;
+              SumHyp1 = SumHyp1 - n0i[i][j] * th0T * hsn / hcn;
+              SumHyp2 = SumHyp2 + n0i[i][j] * Math.pow((th0T / hcn), 2);
+            }
+          }
+        }
+        a0[0] = a0[0] + this.x[i] * (LogxD + n0i[i][1] + n0i[i][2] / this.Temperature - n0i[i][3] * LogT + SumHyp0);
+        a0[1] = a0[1] + this.x[i] * (n0i[i][3] + n0i[i][2] / this.Temperature + SumHyp1);
+        a0[2] = a0[2] - this.x[i] * (n0i[i][3] + SumHyp2);
+      }
+    }
+    return a0;
+  }
+  AlpharGERG(itau){
+    //Private Sub AlpharGERG(itau, idel, T, D, x, ar)
+    //Calculate dimensionless residual Helmholtz energy and its derivatives with respect to tau and delta.
+    //Inputs;
+    //  itau - Set this to 1 to calculate "ar" derivatives with respect to tau [i.e., ar(1,0), ar(1,1), and ar(2,0)], otherwise set it to 0.
+    //  idel - Currently not used, but kept as an input for future use in specifing the highest density derivative needed.
+    //     T - Temperature (K)
+    //     D - Density (mol/l)
+    //   x() - Composition (mole fraction)
+    //Outputs;
+    // ar(0,0) - Residual Helmholtz energy (dimensionless, =a/RT)
+    // ar(0,1) -     delta*partial  (ar)/partial(delta)
+    // ar(0,2) -   delta^2*partial^2(ar)/partial(delta)^2
+    // ar(0,3) -   delta^3*partial^3(ar)/partial(delta)^3
+    // ar(1,0) -       tau*partial  (ar)/partial(tau)
+    // ar(1,1) - tau*delta*partial^2(ar)/partial(tau)/partial(delta)
+    // ar(2,0) -     tau^2*partial^2(ar)/partial(tau)^2
+    let mn;
+    let Tr;
+    let Dr;
+    let del;
+    let tau;
+    let lntau;
+    let ex;
+    let ex2;
+    let ex3;
+    let cij0;
+    let eij0;
+    let delp=Array(7).fill(0);
+    let Expd=Array(7).fill(0);
+    let ndt;
+    let ndtd;
+    let ndtt;
+    let xijf;
+    let ar=zeros2(3,4);
+    //Set up del, tau, log(tau), and the first 7 calculations for del^i
+    [Tr, Dr]=this.ReducingParametersGERG(Tr, Dr);
+    del = this.Density / Dr;
+    tau = Tr / this.Temperature;
+    lntau = Math.log(tau);
+    delp[1] = del;
+    Expd[1] = Math.exp(-delp[1]);
+    for (let i = 2; i <= 7; i++){
+      delp[i] = delp[i - 1] * del;
+      Expd[i] = Math.exp(-delp[i]);
+    }
+    //If temperature has changed, calculate temperature dependent parts
+    if (Math.abs(this.Temperature - Told) > 0.0000001 || Math.abs(Tr - Trold2) > 0.0000001){this.tTermsGERG(lntau)}
+    Told = this.Temperature;
+    Trold2 = Tr;
+    //Calculate pure fluid contributions
+    for (let i = 1; i <= NcGERG; i++){
+      if (this.x[i] > Epsilon){
+        for(let k = 1; k <= kpol[i]; k++){
+          ndt = this.x[i] * delp[doik[i][k]] * taup[i][k];
+          ndtd = ndt * doik[i][k];
+          ar[0][1] = ar[0][1] + ndtd;
+          ar[0][2] = ar[0][2] + ndtd * (doik[i][k] - 1);
+          if(itau > 0){
+            ndtt = ndt * toik[i][k];
+            ar[0][0] = ar[0][0] + ndt;
+            ar[1][0] = ar[1][0] + ndtt;
+            ar[2][0] = ar[2][0] + ndtt * (toik[i][k] - 1);
+            ar[1][1] = ar[1][1] + ndtt * doik[i][k];
+            ar[1][2] = ar[1][2] + ndtt * doik[i][k] * (doik[i][k] - 1);
+            ar[0][3] = ar[0][3] + ndtd * (doik[i][k] - 1) * (doik[i][k] - 2);
+          }
+        }
+        for(let k = 1 + kpol[i]; k <= kpol[i] + kexp[i]; k++){
+          ndt = this.x[i] * delp[doik[i][k]] * taup[i][k] * Expd[coik[i][k]];
+          ex = coik[i][k] * delp[coik[i][k]];
+          ex2 = doik[i][k] - ex;
+          ex3 = ex2 * (ex2 - 1);
+          ar[0][1] = ar[0][1] + ndt * ex2;
+          ar[0][2] = ar[0][2] + ndt * (ex3 - coik[i][k] * ex);
+          if(itau > 0){
+            ndtt = ndt * toik[i][k];
+            ar[0][0] = ar[0][0] + ndt;
+            ar[1][0] = ar[1][0] + ndtt;
+            ar[2][0] = ar[2][0] + ndtt * (toik[i][k] - 1);
+            ar[1][1] = ar[1][1] + ndtt * ex2;
+            ar[1][2] = ar[1][2] + ndtt * (ex3 - coik[i][k] * ex);
+            ar[0][3] = ar[0][3] + ndt * (ex3 * (ex2 - 2) - ex * (3 * ex2 - 3 + coik[i][k]) * coik[i][k]);
+          }
+        }
+      }
+    }
+    //Calculate mixture contributions
+    for (let i = 1; i <= NcGERG - 1; i++){
+      if (this.x[i] > Epsilon){
+        for (let j = i + 1; j <= NcGERG; j++){
+          if (this.x[j] > Epsilon){
+            mn = mNumb[i][j];
+            if (mn >= 0){
+              xijf = this.x[i] * this.x[j] * fij[i][j];
+              for (let k = 1; k <= kpolij[mn]; k++){
+                ndt = xijf * delp[dijk[mn][k]] * taupijk[mn][k];
+                ndtd = ndt * dijk[mn][k];
+                ar[0][1] = ar[0][1] + ndtd;
+                ar[0][2] = ar[0][2] + ndtd * (dijk[mn][k] - 1);
+                if (itau > 0){
+                  ndtt = ndt * tijk[mn][k];
+                  ar[0][0] = ar[0][0] + ndt;
+                  ar[1][0] = ar[1][0] + ndtt;
+                  ar[2][0] = ar[2][0] + ndtt * (tijk[mn][k] - 1);
+                  ar[1][1] = ar[1][1] + ndtt * dijk[mn][k];
+                  ar[1][2] = ar[1][2] + ndtt * dijk[mn][k] * (dijk[mn][k] - 1);
+                  ar[0][3] = ar[0][3] + ndtd * (dijk[mn][k] - 1) * (dijk[mn][k] - 2);
+                }
+              }
+              for (let k = 1 + kpolij[mn]; k <= kpolij[mn] + kexpij[mn]; k++){
+                cij0 = cijk[mn][k] * delp[2];
+                eij0 = eijk[mn][k] * del;
+                ndt = xijf * nijk[mn][k] * delp[dijk[mn][k]] * Math.exp(cij0 + eij0 + gijk[mn][k] + tijk[mn][k] * lntau);
+                ex = dijk[mn][k] + 2 * cij0 + eij0;
+                ex2 = (ex * ex - dijk[mn][k] + 2 * cij0);
+                ar[0][1] = ar[0][1] + ndt * ex;
+                ar[0][2] = ar[0][2] + ndt * ex2;
+                if(itau > 0){
+                  ndtt = ndt * tijk[mn][k];
+                  ar[0][0] = ar[0][0] + ndt;
+                  ar[1][0] = ar[1][0] + ndtt;
+                  ar[2][0] = ar[2][0] + ndtt * (tijk[mn][k] - 1);
+                  ar[1][1] = ar[1][1] + ndtt * ex;
+                  ar[1][2] = ar[1][2] + ndtt * ex2;
+                  ar[0][3] = ar[0][3] + ndt * (ex * (ex2 - 2 * (dijk[mn][k] - 2 * cij0)) + 2 * dijk[mn][k]);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return ar;
+  }
+  tTermsGERG(lntau){
+    //Private Sub tTermsGERG(lntau, x)
+    //Calculate temperature dependent parts of the GERG-2008 equation of state
+    let i = 5; //Use propane to get exponents for short form of EOS
+    let j;
+    let k;
+    let mn;
+    let taup0=Array(12).fill(0);
+    for (k = 1 ; k <= kpol[i] + kexp[i]; k++){
+      taup0[k] = Math.exp(toik[i][k] * lntau);
+    }
+    for (i = 1 ; i <= NcGERG; i ++){
+      if (this.x[i] > Epsilon){
+        if (i > 4 && i != 15 && i != 18 && i != 20){
+          for (k = 1; k <= kpol[i] + kexp[i]; k++){
+            taup[i][k] = noik[i][k] * taup0[k];
+          }
+        }else{
+          for (k = 1 ; k <= kpol[i] + kexp[i]; k++){
+            taup[i][k] = noik[i][k] * Math.exp(toik[i][k] * lntau);
+          }
+        }
+      }
+    }
+    for (i = 1 ; i <= NcGERG - 1; i++){
+      if (this.x[i] > Epsilon){
+        for (j = i + 1 ; j <= NcGERG; j++){
+          if (this.x[j] > Epsilon){
+            mn = mNumb[i][j];
+            if (mn >= 0){
+              for (k = 1 ; k <= kpolij[mn]; k++){
+                taupijk[mn][k] = nijk[mn][k] * Math.exp(tijk[mn][k] * lntau);
+              }
+            }
+          }
+        }
+      }
+    }
+    return;
+  }
+  PseudoCriticalPointGERG(){
+    //Sub PseudoCriticalPointGERG(x, Tcx, Dcx)
+    //Calculate a pseudo critical point as the mole fraction average of the critical temperatures and critical volumes
+    let Vcx=0;
+    let Tcx = 0;
+    let Dcx = 0;
+    for (let i = 1; i <= NcGERG; i++){
+      Tcx = Tcx + this.x[i] * Tc[i];
+      Vcx = Vcx + this.x[i] / Dc[i];
+    }
+    if(Vcx > Epsilon){Dcx = 1 / Vcx}
+    return [Tcx, Dcx];
+  }
 }
