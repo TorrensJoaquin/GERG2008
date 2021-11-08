@@ -329,12 +329,12 @@ let GROSS={
     //Bij values for use in calculating Bmix
         BB[1][1] = bCH[0] + bCH[1] * HCH + bCH[2] * Math.pow(HCH , 2);                                               //B(CH-CH) for the equivalent hydrocarbon
         BB[1][2] = (0.72 + 0.00001875 * Math.pow((320 - T) , 2)) * (BB[1][1] + BB[2][2]) / 2;                        //B(CH-N2)
-        if(BB[1][1] * BB[3][3] < 0){ierr = 4; herr = "Invalid input in Bmix routine"; return};
+        if(BB[1][1] * BB[3][3] < 0){ierr = 4; herr = "Invalid input in Bmix routine"; return[B, C, ierr, herr]};
         BB[1][3] = -0.865 * Math.sqrt(BB[1][1] * BB[3][3]);                                                          //B(CH-CO2)
     //Cijk values for use in calculating Cmix
         onethrd = 1 / 3;
         CC[1][1][1] = cCH[0] + cCH[1] * HCH + cCH[2] * Math.pow(HCH , 2);                                            //C(CH-CH-CH) for the equivalent hydrocarbon
-        if(CC[1][1][1] < 0 || CC[3][3][3] < 0) {ierr = 5; herr = "Invalid input in Bmix routine"; return}
+        if(CC[1][1][1] < 0 || CC[3][3][3] < 0) {ierr = 5; herr = "Invalid input in Bmix routine"; return[B, C, ierr, herr]}
         CC[1][1][2] = (0.92 + 0.0013 * (T - 270)) * Math.pow((Math.pow(CC[1][1][1] , 2) * CC[2][2][2]), onethrd);    //C(CH-CH-N2)
         CC[1][2][2] = (0.92 + 0.0013 * (T - 270)) * Math.pow((Math.pow(CC[2][2][2] , 2) * CC[1][1][1]), onethrd);    //C(CH-N2-N2)
         CC[1][1][3] = 0.92 * (Math.pow(CC[1][1][1] , 2) * Math.pow(CC[3][3][3]) , onethrd);                          //C(CH-CH-CO2)
