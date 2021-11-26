@@ -1,8 +1,9 @@
 const OptimalAmountsOfComponentsRepresentedInTheTernary = 3;
 let a=zeros([20, 7, 6]);
-let MinVmaxOverVSum=zeros([11, 18]);
-let TernaryComponents=zeros([18, 11]); //HotOne matrix of components inside a specific ternary
-let xyzOfTernary=zeros([18, 3]);
+let MinVmaxOverVSum=zeros2(12, 19);
+let TernaryComponents=zeros2(19, 12); //HotOne matrix of components inside a specific ternary
+let MolesOfEachTernary = Array(19).fill(0);
+let xyzOfTernary=zeros2(19, 4);
 let CompensationForShortTernary=Array(19).fill(0);
 let xMax=Array(21).fill(0);
 let xMin=Array(21).fill(0);
@@ -18,8 +19,8 @@ let SumOfNAjiComponentsInTheTernary;
 function ReInitializeValues(){
     StandardDeviationOfTheSolver = 5;
     CheckIfAnImprovementIsDoneInTheLastXMovements = true;
-    NAji=zeros([11, 18]);
-    VAji=zeros([11, 18]);
+    NAji=zeros2(12, 19);
+    VAji=zeros2(12, 19);
 }
 //MethaneNumberMWM(60, 30, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 function MethaneNumberMWM(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
@@ -33,16 +34,14 @@ function MethaneNumberMWM(Methane, Ethane, Propane, iButane, nButane, ipentane, 
 }
 function CorrectingMethaneNumberWithInerts(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
     let ResultVariable = 0;
-    let NewMethaneContent;
-    let SumOfComponents;
-    NewMethaneContent = Methane + Ethane + Propane + iButane + nButane + ipentane + npentane + Hexanes + Hydrogen + CarbonMonoxide + Butadiene + Butylene + Ethylene + Propylene + HydrogenSulphide;
-    SumOfComponents = NewMethaneContent + CarbonDioxide + Nitrogen;
+    let NewMethaneContent = Methane + Ethane + Propane + iButane + nButane + ipentane + npentane + Hexanes + Hydrogen + CarbonMonoxide + Butadiene + Butylene + Ethylene + Propylene + HydrogenSulphide;
+    let SumOfComponents = NewMethaneContent + CarbonDioxide + Nitrogen;
     NewMethaneContent = NewMethaneContent * 100 / (SumOfComponents - Nitrogen);
     CarbonDioxide = CarbonDioxide * 100 / (SumOfComponents - Nitrogen);
-//    NewMethaneContent = NewMethaneContent * SumOfComponents / (NewMethaneContent + CarbonDioxide)
-//    CarbonDioxide = CarbonDioxide * SumOfComponents / (NewMethaneContent + CarbonDioxide)
-    for(let i = 0; i<=7; i++){
-        for(let j = 0; j<=6; j++){
+//  NewMethaneContent = NewMethaneContent * SumOfComponents / (NewMethaneContent + CarbonDioxide)
+//  CarbonDioxide = CarbonDioxide * SumOfComponents / (NewMethaneContent + CarbonDioxide)
+    for(let i = 0; i<8; i++){
+        for(let j = 0; j<7; j++){
             ResultVariable = ResultVariable + a[20][i][j] * Math.pow(NewMethaneContent, i) * Math.pow(CarbonDioxide, j);
         }
     }
@@ -56,7 +55,7 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
     let HowManyTimesIsTheComponentRepresented=Array(12).fill(0);
     let AffinitiesOfEachTernary=Array(19).fill(0);
     let WillWeBeUsingThisTernaryHotOnes=Array(19).fill(false);
-    let MinimumNAji=zeros([11, 18]);
+    let MinimumNAji=zeros2(12, 19);
     let CalculatedMethaneNumbers = [];
     //
     CalculateIsThisComponentPresentHotOnes(SimplifiedChromatografy, IsThisComponentPresentHotOnes);
@@ -64,36 +63,39 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
     CalculateAffinitiesOfEachTernary(SimplifiedChromatografy, AffinitiesOfEachTernary);
     CalculateHowManyTimesIsTheComponentRepresented(HowManyComponentsAreRepresentedInThisTernary, AffinitiesOfEachTernary, IsThisComponentPresentHotOnes, HowManyTimesIsTheComponentRepresented, WillWeBeUsingThisTernaryHotOnes);
     //
-    let RangeMinMaxAvgValueOfTheResult=Array(5).fill(0);
+    let RangeMinMaxAvgValueOfTheResult=Array(3).fill(0);
     let ActualMinimumRangeOfTheResultAchieved = 0;
-    let ActualBestCalculatedMethaneNumber;
-    let WhichCalculatedMethaneNumber;
-    WhichCalculatedMethaneNumber = 1;
+    let WhichCalculatedMethaneNumber = 1;
     IsThisComponentPresentInThisTernaryHotOnes = GetMeIsThisComponentPresentInThisTernaryHotOnes(IsThisComponentPresentHotOnes, WillWeBeUsingThisTernaryHotOnes, TernaryComponents);
-    for(let x = 0; x<=10000; x++){
+    for(let x = 0; x<10000; x++){
         CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChromatografy, x, MinimumNAji);
         if(IsThisCompositionInsideBoundarys()){
             CalculateMethaneNumber(WillWeBeUsingThisTernaryHotOnes, CalculatedMethaneNumbers, RangeMinMaxAvgValueOfTheResult);
-            if(ActualMinimumRangeOfTheResultAchieved == 0 || RangeMinMaxAvgValueOfTheResult[1] < ActualMinimumRangeOfTheResultAchieved){
+            if(ActualMinimumRangeOfTheResultAchieved == 0 || RangeMinMaxAvgValueOfTheResult[0] < ActualMinimumRangeOfTheResultAchieved){
                 ResultVariable = 0;
-                ActualMinimumRangeOfTheResultAchieved = RangeMinMaxAvgValueOfTheResult[1];
+                ActualMinimumRangeOfTheResultAchieved = RangeMinMaxAvgValueOfTheResult[0];
                 CheckIfAnImprovementIsDoneInTheLastXMovements = true;
                 for(let i = 1; i<=18; i++){
                     if (WillWeBeUsingThisTernaryHotOnes[i]){
                         ResultVariable = ResultVariable + CalculatedMethaneNumbers[WhichCalculatedMethaneNumber] * SumOfNAjiComponentsInTheTernary[i] / 100;
                         WhichCalculatedMethaneNumber = WhichCalculatedMethaneNumber + 1;
-                        for(let j = 1; j<=11; j++){
+                        MolesOfEachTernary = Array(19).fill(0);
+                        for(let j = 1; j<12; j++){
                             MinimumNAji[j][i] = NAji[j][i];
+                            for(let z = 1; z<19; z++){
+                                MolesOfEachTernary[z] +=  NAji[j][z];
+                            }
                         }
                     }
                 }
                 WhichCalculatedMethaneNumber = 1;
-                if(RangeMinMaxAvgValueOfTheResult[1] < 0.1){
+                if(RangeMinMaxAvgValueOfTheResult[0] < 0.01){
                     break;
                 }
             }
         }
     }
+    // I could run a newton rapson in here. calculating each component of VAji
     return ResultVariable;
 }
 function CalculateMethaneNumber(WillWeBeUsingThisTernaryHotOnes, CalculatedMethaneNumbers, RangeMinMaxAvgValueOfTheResult){
@@ -107,25 +109,24 @@ function CalculateMethaneNumber(WillWeBeUsingThisTernaryHotOnes, CalculatedMetha
         }
     }
     //This value is important. Is going to be the Objective Function
-    RangeMinMaxAvgValueOfTheResult[2] = arrayMin(CalculatedMethaneNumbers);
-    RangeMinMaxAvgValueOfTheResult[3] = arrayMax(CalculatedMethaneNumbers);
-    RangeMinMaxAvgValueOfTheResult[4] = RangeMinMaxAvgValueOfTheResult[3] - RangeMinMaxAvgValueOfTheResult[2];
-    RangeMinMaxAvgValueOfTheResult[1] = RangeMinMaxAvgValueOfTheResult[3] - RangeMinMaxAvgValueOfTheResult[2];
+    RangeMinMaxAvgValueOfTheResult[1] = arrayMin(CalculatedMethaneNumbers);
+    RangeMinMaxAvgValueOfTheResult[2] = arrayMax(CalculatedMethaneNumbers);
+    RangeMinMaxAvgValueOfTheResult[0] = RangeMinMaxAvgValueOfTheResult[2] - RangeMinMaxAvgValueOfTheResult[1];
 }
 function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChromatografy, x, MinimumNAji){
     //Create The first stage of FractionOfComponentInsideTernary.
-    let FractionOfComponentInsideTernary=zeros([11, 18]);
+    let FractionOfComponentInsideTernary=zeros2(12, 19);
     let RelationshipBetweenRandomNumbersAndTotalVolume=Array(12).fill(0);
     //This is the pathfinding solver changing the presition.
     if (x % 500 == 0){
         if (CheckIfAnImprovementIsDoneInTheLastXMovements == false){
-            StandardDeviationOfTheSolver = StandardDeviationOfTheSolver * 0.5;
+            StandardDeviationOfTheSolver = StandardDeviationOfTheSolver * 0.75;
         }
         CheckIfAnImprovementIsDoneInTheLastXMovements = false;
     }
     //
-    for(let i = 0; i<=18; i++){
-        for(let j = 0; j<=11; j++){
+    for(let i = 0; i<19; i++){
+        for(let j = 0; j<12; j++){
             if(IsThisComponentPresentInThisTernaryHotOnes[j][i]){
                 FractionOfComponentInsideTernary[j][i] = RandomizedNumberWithEvolutiveApproach(x, MinimumNAji, j, i);
                 RelationshipBetweenRandomNumbersAndTotalVolume[j] = RelationshipBetweenRandomNumbersAndTotalVolume[j] + FractionOfComponentInsideTernary[j][i];
@@ -186,7 +187,7 @@ function CalculateHowManyTimesIsTheComponentRepresented(HowManyComponentsAreRepr
 }
 function DoIveAlreadyCoveredThisComponentDuringThisIteration(CurrentComponentInAnalisys, TernaryCoveredInTheLastIteration){
     let AuxResult = false;
-    for(let i = 1; i <= 18; i++){
+    for(let i = 1; i < 19; i++){
         if(TernaryCoveredInTheLastIteration[i] && MinVmaxOverVSum[CurrentComponentInAnalisys, i] != 0){
             AuxResult = true;
         }
@@ -199,7 +200,7 @@ function FindTheNextTernaryToBeSelected(CurrentComponentInAnalisys, HowManyCompo
     for (let LowDownMyExpectationOnTheComponentsRepresentedInTheTernary = 0; LowDownMyExpectationOnTheComponentsRepresentedInTheTernary <= OptimalAmountsOfComponentsRepresentedInTheTernary - 1; LowDownMyExpectationOnTheComponentsRepresentedInTheTernary++){
         ActualAffinityOfTheTernarySelected = 0;
         ActualTernarySelected = 0;
-        for(let i = 1; i <= 18; i++){
+        for(let i = 1; i < 19; i++){
             if(MinVmaxOverVSum[CurrentComponentInAnalisys][i] > 0 && HowManyComponentsAreRepresentedInThisTernary[i] + CompensationForShortTernary[i] == OptimalAmountsOfComponentsRepresentedInTheTernary - LowDownMyExpectationOnTheComponentsRepresentedInTheTernary && WillWeBeUsingThisTernaryHotOnes[i] == false){
                 if(AffinitiesOfEachTernary[i] > ActualAffinityOfTheTernarySelected){
                     ActualAffinityOfTheTernarySelected = AffinitiesOfEachTernary[i];
@@ -214,9 +215,9 @@ function FindTheNextTernaryToBeSelected(CurrentComponentInAnalisys, HowManyCompo
     return ActualTernarySelected;
 }
 function GetMeIsThisComponentPresentInThisTernaryHotOnes(IsThisComponentPresentHotOnes, WillWeBeUsingThisTernaryHotOnes, TernaryComponents){
-    let IsThisComponentPresentInThisTernaryHotOnes=zeros([11, 18]);
-    for(let i = 1; i<=18; i++){
-        for(let j = 1; j<=11; j++){
+    let IsThisComponentPresentInThisTernaryHotOnes=zeros2(12, 19);
+    for(let i = 1; i<19; i++){
+        for(let j = 1; j<12; j++){
             if(IsThisComponentPresentHotOnes[j] && WillWeBeUsingThisTernaryHotOnes[i] && TernaryComponents[i][j]){
                 IsThisComponentPresentInThisTernaryHotOnes[j][i] = true;
             }
@@ -228,14 +229,14 @@ function DoIAlreadyHaveTheMinimumAmmountOfAceptableTernaryMixtures(IsThisCompone
     //let HowManyComponentsAreRepresentedInThisTernary=Array(19).fill(0);
     let HowManyTimesIsTheComponentRepresented=Array(12).fill(0);
     let MinimumAmmountOfAceptableTernaryMixtures=Array(12).fill(true);
-    for(let i = 1; i<=18; i++){
-        for(let j = 1; j<=11; j++){
+    for(let i = 1; i<19; i++){
+        for(let j = 1; j<12; j++){
             if(IsThisComponentPresentHotOnes[j] && WillWeBeUsingThisTernaryHotOnes[i] && TernaryComponents[i][j]){
                 HowManyTimesIsTheComponentRepresented[j] = HowManyTimesIsTheComponentRepresented[j] + 1;
             }
         }
     }
-    for(let j = 1; j<=11; j++){
+    for(let j = 1; j<12; j++){
         if(IsThisComponentPresentHotOnes[j] && HowManyTimesIsTheComponentRepresented[j] < 2){
             MinimumAmmountOfAceptableTernaryMixtures[0] = false;
             MinimumAmmountOfAceptableTernaryMixtures[j] = false;
@@ -244,15 +245,15 @@ function DoIAlreadyHaveTheMinimumAmmountOfAceptableTernaryMixtures(IsThisCompone
     return MinimumAmmountOfAceptableTernaryMixtures;
 }
 function CalculateAffinitiesOfEachTernary(SimplifiedChromatografy, AffinitiesOfEachTernary){
-    for(let j = 0; j<=18; j++){
-        for(let i = 0; i<=11; i++){
+    for(let j = 0; j<19; j++){
+        for(let i = 0; i<12; i++){
             AffinitiesOfEachTernary[j] = AffinitiesOfEachTernary[j] + SimplifiedChromatografy[i] * MinVmaxOverVSum[i][j];
         }
     }
 }
 function CalculateHowManyComponentsAreRepresentedInThisTernary(IsThisComponentPresentHotOnes, HowManyComponentsAreRepresentedInThisTernary){
-    for(let i = 1; i<=18; i++){
-        for(let j = 1; j<=11; j++){
+    for(let i = 1; i<19; i++){
+        for(let j = 1; j<12; j++){
             if(IsThisComponentPresentHotOnes[j] && TernaryComponents[i][j]){
                 HowManyComponentsAreRepresentedInThisTernary[i] = HowManyComponentsAreRepresentedInThisTernary[i] + 1;
             }
@@ -260,7 +261,7 @@ function CalculateHowManyComponentsAreRepresentedInThisTernary(IsThisComponentPr
     }
 }
 function CalculateIsThisComponentPresentHotOnes(SimplifiedChromatografy, IsThisComponentPresentHotOnes){
-    for(let j = 1; j <= 11; j++){
+    for(let j = 1; j < 12; j++){
         if(SimplifiedChromatografy[j] > 0.05){
             IsThisComponentPresentHotOnes[j] = true;
         }
@@ -268,7 +269,7 @@ function CalculateIsThisComponentPresentHotOnes(SimplifiedChromatografy, IsThisC
 }
 function IsThisCompositionInsideBoundarys(){
     let Answer = true;
-    for(let i = 1; i<=18; i++){
+    for(let i = 1; i<19; i++){
         if(xyzOfTernary[i][1] != 0){
             if(VAji[xyzOfTernary[i][1]][i] > xMax[i] && VAji[xyzOfTernary[i][1]][i] < xMin[i]){
                 Answer = false;
@@ -751,14 +752,14 @@ function UploadTheCoefficients(){
 }
 function FunctionA3(t){
     let Aux = 0;
-    for(let i = 0; i<=7; i++){
-        for(let j = 0; j<=6; j++){
+    for(let i = 0; i<8; i++){
+        for(let j = 0; j<7; j++){
             Aux = Aux + a[t][i][j] * Math.pow(VAji[xyzOfTernary[t][1]][t], i) * Math.pow(VAji[xyzOfTernary[t][2]][t], j);
         }
     }
     return Aux;
 }
-function arrayMin(arr) {
+function arrayMin(arr){
     let len = arr.length;
     let min = Infinity;
     for(let i = 1; i < len; i++) {
