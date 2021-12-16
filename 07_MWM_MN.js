@@ -16,6 +16,24 @@ let CheckIfAnImprovementIsDoneInTheLastXMovements;
 let NAji;
 let VAji;
 let SumOfNAjiComponentsInTheTernary;
+function RunTestOfTheAlgortihm(){
+    console.log(MethaneNumberMWM(83.5, 3.47, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 90.02');
+    console.log(MethaneNumberMWM(82.43, 3, 0.2, 0, 0.27, 0, 0.1, 0, 13, 1, 0, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 85.03');
+    console.log(MethaneNumberMWM(94.68, 3.2, 1.05, 0, 0.47, 0, 0.2, 0, 0.2, 0.2, 0, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 80.0');
+    console.log(MethaneNumberMWM(86.3, 8.7, 1.6, 0, 0.3, 0, 0, 0, 0.8, 2.3, 0, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 75.03');
+    console.log(MethaneNumberMWM(87.34, 7, 2.2, 0, 0.41, 0, 0.11, 0.2, 0.74, 2, 0, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 70.02');
+    console.log(MethaneNumberMWM(84.62, 8, 1.7, 0, 1.47, 0, 0.51, 0, 3.7, 0, 0, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 65.0');
+    console.log(MethaneNumberMWM(85.58, 5.7, 2.1, 0, 0.9, 0, 0.82, 0.6, 0.4, 3.9, 0, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 59.97');
+    console.log(MethaneNumberMWM(15, 5, 5, 0, 5, 0, 0, 0, 0, 0, 70, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 20.48');
+    console.log(MethaneNumberMWM(80, 5, 5, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 53.20');
+    console.log(MethaneNumberMWM(70, 5, 5, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 5, 0).toFixed(1) + ' -> 41.25');
+    console.log(MethaneNumberMWM(10, 5, 5, 0, 5, 0, 0, 0, 0, 0, 65, 0, 0, 0, 5, 5, 0).toFixed(1) + ' -> 19.58');
+    console.log(MethaneNumberMWM(65, 5, 5, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 5, 5).toFixed(1) + ' -> 35.02');
+    console.log(MethaneNumberMWM(5, 5, 5, 0, 5, 0, 0, 0, 0, 0, 50, 20, 0, 0, 5, 5, 0).toFixed(1) + ' -> 23.89');
+    console.log(MethaneNumberMWM(75, 5, 5, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 5).toFixed(1) + ' -> 44.15');
+    console.log(MethaneNumberMWM(55, 5, 5, 0, 5, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 10).toFixed(1) + ' -> 30.43');
+    console.log(MethaneNumberMWM(5, 2, 2, 0, 2, 0, 0, 0, 0, 0, 90, 0, 0, 0, 0, 0, 0).toFixed(1) + ' -> 9.73');
+}
 function ReInitializeValues(){
     StandardDeviationOfTheSolver = 5;
     CheckIfAnImprovementIsDoneInTheLastXMovements = true;
