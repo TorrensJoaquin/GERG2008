@@ -188,7 +188,7 @@ function CalculateHowManyTimesIsTheComponentRepresented(HowManyComponentsAreRepr
 function DoIveAlreadyCoveredThisComponentDuringThisIteration(CurrentComponentInAnalisys, TernaryCoveredInTheLastIteration){
     let AuxResult = false;
     for(let i = 1; i < 19; i++){
-        if(TernaryCoveredInTheLastIteration[i] && MinVmaxOverVSum[CurrentComponentInAnalisys, i] != 0){
+        if(TernaryCoveredInTheLastIteration[i] && MinVmaxOverVSum[CurrentComponentInAnalisys][i] != 0){
             AuxResult = true;
         }
     }
