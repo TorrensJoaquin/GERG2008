@@ -278,7 +278,7 @@ function IsThisCompositionInsideBoundarys(){
             if(VAji[xyzOfTernary[i][2]][i] > yMax[i] && VAji[xyzOfTernary[i][2]][i] < yMin[i]){
                 Answer = false;
             }
-        }else if(xyzOfTernary[i, 3] != 0){
+        }else if(xyzOfTernary[i][3] != 0){
             if(VAji[xyzOfTernary[i][3]][i] > zMax[i] && VAji[xyzOfTernary[i][3]][i] < zMin[i]){
                 Answer = false;
             }
