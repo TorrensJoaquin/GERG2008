@@ -317,23 +317,23 @@ function CalculateIsThisComponentPresentHotOnes(SimplifiedChromatografy, IsThisC
     }
 }
 function IsThisCompositionInsideBoundarys(){
-    let Answer = true;
+    let Answer;
     for(let i = 1; i<19; i++){
         if(xyzOfTernary[i][1] != 0){
             if(VAji[xyzOfTernary[i][1]][i] > xMax[i] && VAji[xyzOfTernary[i][1]][i] < xMin[i]){
-                Answer = false;
+                return Answer = false;
             }
         }else if (xyzOfTernary[i][2] != 0){
             if(VAji[xyzOfTernary[i][2]][i] > yMax[i] && VAji[xyzOfTernary[i][2]][i] < yMin[i]){
-                Answer = false;
+                return Answer = false;
             }
         }else if(xyzOfTernary[i][3] != 0){
             if(VAji[xyzOfTernary[i][3]][i] > zMax[i] && VAji[xyzOfTernary[i][3]][i] < zMin[i]){
-                Answer = false;
+                return Answer = false;
             }
         }
     }
-    return Answer;
+    return Answer = true;
 }
 function SimplifyChromatografy(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
     let Result=Array(12).fill(0);
@@ -353,7 +353,7 @@ function SimplifyChromatografy(Methane, Ethane, Propane, iButane, nButane, ipent
         SumOfComponents += Result[j];
     }
     for(let j = 1; j < 12; j++){
-        Result[j] = Result[j] * 100 / SumOfComponents;
+        Result[j] *= 100 / SumOfComponents;
     }
     return Result;
 }
