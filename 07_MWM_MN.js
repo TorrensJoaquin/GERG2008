@@ -296,7 +296,7 @@ function DoIAlreadyHaveTheMinimumAmmountOfAceptableTernaryMixtures(IsThisCompone
 function CalculateAffinitiesOfEachTernary(SimplifiedChromatografy, AffinitiesOfEachTernary){
     for(let j = 0; j<19; j++){
         for(let i = 0; i<12; i++){
-            AffinitiesOfEachTernary[j] = AffinitiesOfEachTernary[j] + SimplifiedChromatografy[i] * MinVmaxOverVSum[i][j];
+            AffinitiesOfEachTernary[j] += SimplifiedChromatografy[i] * MinVmaxOverVSum[i][j];
         }
     }
 }
