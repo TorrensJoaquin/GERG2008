@@ -124,7 +124,7 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
                 ResultVariable = 0;
                 ActualMinimumRangeOfTheResultAchieved = RangeMinMaxAvgValueOfTheResult[0];
                 CheckIfAnImprovementIsDoneInTheLastXMovements = true;
-                for(let i = 1; i<=18; i++){
+                for(let i = 1; i < 19; i++){
                     if (WillWeBeUsingThisTernaryHotOnes[i]){
                         ResultVariable += CalculatedMethaneNumbers[WhichCalculatedMethaneNumber] * SumOfNAjiComponentsInTheTernary[i] / 100;
                         WhichCalculatedMethaneNumber += 1;
@@ -149,7 +149,7 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
 }
 function CalculateMethaneNumber(WillWeBeUsingThisTernaryHotOnes, CalculatedMethaneNumbers, RangeMinMaxAvgValueOfTheResult){
     CalculatedMethaneNumbers[1] = 0;
-    for(let i = 0; i<=18; i++){
+    for(let i = 0; i < 19; i++){
         if(WillWeBeUsingThisTernaryHotOnes[i]){
             if(CalculatedMethaneNumbers[1] != 0){
                 CalculatedMethaneNumbers.push(0);
@@ -184,8 +184,8 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
     }
     //Create The second stage of FractionOfComponentInsideTernary -> NAji.
     SumOfNAjiComponentsInTheTernary=Array(19).fill(0);
-    for(let i = 0; i<=18; i++){
-        for(let j = 0; j<=11; j++){
+    for(let i = 0; i < 19; i++){
+        for(let j = 0; j < 12; j++){
             if(IsThisComponentPresentInThisTernaryHotOnes[j][i]){
                 NAji[j][i] = FractionOfComponentInsideTernary[j][i] * SimplifiedChromatografy[j] / RelationshipBetweenRandomNumbersAndTotalVolume[j];
                 SumOfNAjiComponentsInTheTernary[i] += NAji[j][i];
@@ -193,8 +193,8 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
         }
     }
     //Calculate VAji
-    for(let i = 0; i<=18; i++){
-        for(let j = 0; j<=11; j++){
+    for(let i = 0; i<19; i++){
+        for(let j = 0; j<12; j++){
             if(NAji[j][i] != 0){
                 VAji[j][i] = NAji[j][i] * 100 / SumOfNAjiComponentsInTheTernary[i];
             }
@@ -216,7 +216,7 @@ function CalculateHowManyTimesIsTheComponentRepresented(HowManyComponentsAreRepr
     let TernaryCoveredInTheLastIteration;
     let ActualTernarySelected;
     let MinimumAmmountOfAceptableTernaryMixtures;
-    for(let RunAgainTheTernarySelectionAnalysis = 1; RunAgainTheTernarySelectionAnalysis <= 5; RunAgainTheTernarySelectionAnalysis++){
+    for(let RunAgainTheTernarySelectionAnalysis = 1; RunAgainTheTernarySelectionAnalysis < 6; RunAgainTheTernarySelectionAnalysis++){
         TernaryCoveredInTheLastIteration=Array(19).fill(false);
         for(let CurrentComponentInAnalisys = 1; CurrentComponentInAnalisys < 12; CurrentComponentInAnalisys++){
             MinimumAmmountOfAceptableTernaryMixtures = DoIAlreadyHaveTheMinimumAmmountOfAceptableTernaryMixtures(IsThisComponentPresentHotOnes, TernaryComponents, WillWeBeUsingThisTernaryHotOnes);
@@ -246,7 +246,7 @@ function DoIveAlreadyCoveredThisComponentDuringThisIteration(CurrentComponentInA
 function FindTheNextTernaryToBeSelected(CurrentComponentInAnalisys, HowManyComponentsAreRepresentedInThisTernary, AffinitiesOfEachTernary, WillWeBeUsingThisTernaryHotOnes){
     let ActualAffinityOfTheTernarySelected = 0;
     let ActualTernarySelected = 0;
-    for (let LowDownMyExpectationOnTheComponentsRepresentedInTheTernary = 0; LowDownMyExpectationOnTheComponentsRepresentedInTheTernary <= OptimalAmountsOfComponentsRepresentedInTheTernary - 1; LowDownMyExpectationOnTheComponentsRepresentedInTheTernary++){
+    for (let LowDownMyExpectationOnTheComponentsRepresentedInTheTernary = 0; LowDownMyExpectationOnTheComponentsRepresentedInTheTernary < OptimalAmountsOfComponentsRepresentedInTheTernary; LowDownMyExpectationOnTheComponentsRepresentedInTheTernary++){
         ActualAffinityOfTheTernarySelected = 0;
         ActualTernarySelected = 0;
         for(let i = 1; i < 19; i++){
@@ -349,10 +349,10 @@ function SimplifyChromatografy(Methane, Ethane, Propane, iButane, nButane, ipent
     Result[9] = Ethane;
     Result[10] = (iButane + nButane) + (ipentane + npentane) * 2.3 + Hexanes * 5.3 + Butadiene + Butylene;
     Result[11] = Methane;
-    for(let j = 1; j <= 11; j++){
+    for(let j = 1; j < 12; j++){
         SumOfComponents += Result[j];
     }
-    for(let j = 1; j <= 11; j++){
+    for(let j = 1; j < 12; j++){
         Result[j] = Result[j] * 100 / SumOfComponents;
     }
     return Result;
