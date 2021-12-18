@@ -92,7 +92,7 @@ function CorrectingMethaneNumberWithInerts(Methane, Ethane, Propane, iButane, nB
 //  CarbonDioxide = CarbonDioxide * SumOfComponents / (NewMethaneContent + CarbonDioxide)
     for(let i = 0; i<8; i++){
         for(let j = 0; j<7; j++){
-            ResultVariable = ResultVariable + a[20][i][j] * Math.pow(NewMethaneContent, i) * Math.pow(CarbonDioxide, j);
+            ResultVariable += a[20][i][j] * Math.pow(NewMethaneContent, i) * Math.pow(CarbonDioxide, j);
         }
     }
     return ResultVariable;
@@ -127,8 +127,8 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
                 CheckIfAnImprovementIsDoneInTheLastXMovements = true;
                 for(let i = 1; i<=18; i++){
                     if (WillWeBeUsingThisTernaryHotOnes[i]){
-                        ResultVariable = ResultVariable + CalculatedMethaneNumbers[WhichCalculatedMethaneNumber] * SumOfNAjiComponentsInTheTernary[i] / 100;
-                        WhichCalculatedMethaneNumber = WhichCalculatedMethaneNumber + 1;
+                        ResultVariable += CalculatedMethaneNumbers[WhichCalculatedMethaneNumber] * SumOfNAjiComponentsInTheTernary[i] / 100;
+                        WhichCalculatedMethaneNumber += 1;
                         MolesOfEachTernary = Array(19).fill(0);
                         for(let j = 1; j<12; j++){
                             MinimumNAji[j][i] = NAji[j][i];
@@ -179,7 +179,7 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
         for(let j = 0; j<12; j++){
             if(IsThisComponentPresentInThisTernaryHotOnes[j][i]){
                 FractionOfComponentInsideTernary[j][i] = RandomizedNumberWithEvolutiveApproach(x, MinimumNAji, j, i);
-                RelationshipBetweenRandomNumbersAndTotalVolume[j] = RelationshipBetweenRandomNumbersAndTotalVolume[j] + FractionOfComponentInsideTernary[j][i];
+                RelationshipBetweenRandomNumbersAndTotalVolume[j] += FractionOfComponentInsideTernary[j][i];
             }
         }
     }
@@ -189,7 +189,7 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
         for(let j = 0; j<=11; j++){
             if(IsThisComponentPresentInThisTernaryHotOnes[j][i]){
                 NAji[j][i] = FractionOfComponentInsideTernary[j][i] * SimplifiedChromatografy[j] / RelationshipBetweenRandomNumbersAndTotalVolume[j];
-                SumOfNAjiComponentsInTheTernary[i] = SumOfNAjiComponentsInTheTernary[i] + NAji[j][i];
+                SumOfNAjiComponentsInTheTernary[i] += NAji[j][i];
             }
         }
     }
@@ -282,7 +282,7 @@ function DoIAlreadyHaveTheMinimumAmmountOfAceptableTernaryMixtures(IsThisCompone
     for(let i = 1; i<19; i++){
         for(let j = 1; j<12; j++){
             if(IsThisComponentPresentHotOnes[j] && WillWeBeUsingThisTernaryHotOnes[i] && TernaryComponents[i][j]){
-                HowManyTimesIsTheComponentRepresented[j] = HowManyTimesIsTheComponentRepresented[j] + 1;
+                HowManyTimesIsTheComponentRepresented[j] += 1;
             }
         }
     }
@@ -305,7 +305,7 @@ function CalculateHowManyComponentsAreRepresentedInThisTernary(IsThisComponentPr
     for(let i = 1; i<19; i++){
         for(let j = 1; j<12; j++){
             if(IsThisComponentPresentHotOnes[j] && TernaryComponents[i][j]){
-                HowManyComponentsAreRepresentedInThisTernary[i] = HowManyComponentsAreRepresentedInThisTernary[i] + 1;
+                HowManyComponentsAreRepresentedInThisTernary[i] += 1;
             }
         }
     }
@@ -804,7 +804,7 @@ function FunctionA3(t){
     let Aux = 0;
     for(let i = 0; i<8; i++){
         for(let j = 0; j<7; j++){
-            Aux = Aux + a[t][i][j] * Math.pow(VAji[xyzOfTernary[t][1]][t], i) * Math.pow(VAji[xyzOfTernary[t][2]][t], j);
+            Aux += a[t][i][j] * Math.pow(VAji[xyzOfTernary[t][1]][t], i) * Math.pow(VAji[xyzOfTernary[t][2]][t], j);
         }
     }
     return Aux;
