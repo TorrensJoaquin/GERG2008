@@ -72,7 +72,6 @@ function ReInitializeValues(){
     NAji=zeros2(12, 19);
     VAji=zeros2(12, 19);
 }
-//MethaneNumberMWM(60, 30, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 function MethaneNumberMWM(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
     let SimplifiedChromatografy;
     let MethaneNumberMWMWithoutInerts;
@@ -170,7 +169,7 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
     //This is the pathfinding solver changing the presition.
     if (x % 500 == 0){
         if (CheckIfAnImprovementIsDoneInTheLastXMovements == false){
-            StandardDeviationOfTheSolver = StandardDeviationOfTheSolver * 0.75;
+            StandardDeviationOfTheSolver *= 0.75;
         }
         CheckIfAnImprovementIsDoneInTheLastXMovements = false;
     }
@@ -219,7 +218,7 @@ function CalculateHowManyTimesIsTheComponentRepresented(HowManyComponentsAreRepr
     let MinimumAmmountOfAceptableTernaryMixtures;
     for(let RunAgainTheTernarySelectionAnalysis = 1; RunAgainTheTernarySelectionAnalysis <= 5; RunAgainTheTernarySelectionAnalysis++){
         TernaryCoveredInTheLastIteration=Array(19).fill(false);
-        for(let CurrentComponentInAnalisys = 1; CurrentComponentInAnalisys<=11; CurrentComponentInAnalisys++){
+        for(let CurrentComponentInAnalisys = 1; CurrentComponentInAnalisys < 12; CurrentComponentInAnalisys++){
             MinimumAmmountOfAceptableTernaryMixtures = DoIAlreadyHaveTheMinimumAmmountOfAceptableTernaryMixtures(IsThisComponentPresentHotOnes, TernaryComponents, WillWeBeUsingThisTernaryHotOnes);
             if(MinimumAmmountOfAceptableTernaryMixtures[0]){break}
             if(MinimumAmmountOfAceptableTernaryMixtures[CurrentComponentInAnalisys] == false && DoIveAlreadyCoveredThisComponentDuringThisIteration(CurrentComponentInAnalisys, TernaryCoveredInTheLastIteration) == false){
@@ -351,7 +350,7 @@ function SimplifyChromatografy(Methane, Ethane, Propane, iButane, nButane, ipent
     Result[10] = (iButane + nButane) + (ipentane + npentane) * 2.3 + Hexanes * 5.3 + Butadiene + Butylene;
     Result[11] = Methane;
     for(let j = 1; j <= 11; j++){
-        SumOfComponents = SumOfComponents + Result[j];
+        SumOfComponents += Result[j];
     }
     for(let j = 1; j <= 11; j++){
         Result[j] = Result[j] * 100 / SumOfComponents;
