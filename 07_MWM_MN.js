@@ -2,7 +2,6 @@ const OptimalAmountsOfComponentsRepresentedInTheTernary = 3;
 let a=zeros([20, 7, 6]);
 let MinVmaxOverVSum=zeros2(12, 19);
 let TernaryComponents=zeros2(19, 12); //HotOne matrix of components inside a specific ternary
-let MolesOfEachTernary = Array(19).fill(0);
 let xyzOfTernary=zeros2(19, 4);
 let CompensationForShortTernary=Array(19).fill(0);
 let xMax=Array(21).fill(0);
@@ -105,7 +104,6 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
     let AffinitiesOfEachTernary=Array(19).fill(0);
     let WillWeBeUsingThisTernaryHotOnes=Array(19).fill(false);
     let MinimumNAji=zeros2(12, 19);
-    let CalculatedMethaneNumbers = [];
     //
     CalculateIsThisComponentPresentHotOnes(SimplifiedChromatografy, IsThisComponentPresentHotOnes);
     CalculateHowManyComponentsAreRepresentedInThisTernary(IsThisComponentPresentHotOnes, HowManyComponentsAreRepresentedInThisTernary);
@@ -117,6 +115,7 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
     let WhichCalculatedMethaneNumber = 1;
     IsThisComponentPresentInThisTernaryHotOnes = GetMeIsThisComponentPresentInThisTernaryHotOnes(IsThisComponentPresentHotOnes, WillWeBeUsingThisTernaryHotOnes, TernaryComponents);
     for(let x = 0; x<10000; x++){
+        let CalculatedMethaneNumbers = [];
         CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChromatografy, x, MinimumNAji);
         if(IsThisCompositionInsideBoundarys()){
             CalculateMethaneNumber(WillWeBeUsingThisTernaryHotOnes, CalculatedMethaneNumbers, RangeMinMaxAvgValueOfTheResult);
@@ -128,15 +127,12 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
                     if (WillWeBeUsingThisTernaryHotOnes[i]){
                         ResultVariable += CalculatedMethaneNumbers[WhichCalculatedMethaneNumber] * SumOfNAjiComponentsInTheTernary[i] * 0.01;
                         WhichCalculatedMethaneNumber += 1;
-                        MolesOfEachTernary = Array(19).fill(0);
                         for(let j = 1; j<12; j++){
                             MinimumNAji[j][i] = NAji[j][i];
-                            for(let z = 1; z<19; z++){
-                                MolesOfEachTernary[z] +=  NAji[j][z];
-                            }
                         }
                     }
                 }
+                //console.log ("Iteracion N°: " + x.toString() + " : " + (RangeMinMaxAvgValueOfTheResult[2]).toFixed(3).toString() + " " + RangeMinMaxAvgValueOfTheResult[1].toFixed(3).toString() + " " + RangeMinMaxAvgValueOfTheResult[2].toFixed(3).toString() + "  MN: " + ResultVariable.toFixed(3).toString() + "  Rango: " + RangeMinMaxAvgValueOfTheResult[1].toFixed(2).toString() + " " + StandardDeviationOfTheSolver.toString());
                 WhichCalculatedMethaneNumber = 1;
                 if(RangeMinMaxAvgValueOfTheResult[0] < 0.01){
                     break;
