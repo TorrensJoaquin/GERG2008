@@ -126,7 +126,7 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
                 CheckIfAnImprovementIsDoneInTheLastXMovements = true;
                 for(let i = 1; i < 19; i++){
                     if (WillWeBeUsingThisTernaryHotOnes[i]){
-                        ResultVariable += CalculatedMethaneNumbers[WhichCalculatedMethaneNumber] * SumOfNAjiComponentsInTheTernary[i] / 100;
+                        ResultVariable += CalculatedMethaneNumbers[WhichCalculatedMethaneNumber] * SumOfNAjiComponentsInTheTernary[i] * 0.01;
                         WhichCalculatedMethaneNumber += 1;
                         MolesOfEachTernary = Array(19).fill(0);
                         for(let j = 1; j<12; j++){
