@@ -204,9 +204,9 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
 function RandomizedNumberWithEvolutiveApproach(x, MinimumNAji, j, i){
     let AuxResult;
     if (Math.floor(x / 1000) == 0){
-        AuxResult = random(StandardDeviationOfTheSolver);
+        AuxResult = Math.random() * StandardDeviationOfTheSolver;
     }else{
-        AuxResult = random(StandardDeviationOfTheSolver) + MinimumNAji[j][i];
+        AuxResult = Math.random() * StandardDeviationOfTheSolver + MinimumNAji[j][i];
     }
     return AuxResult;
 }
