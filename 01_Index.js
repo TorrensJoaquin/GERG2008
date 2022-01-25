@@ -5,6 +5,7 @@ let SumOfComponents;
 let GERG = new FlowStream();
 let GERGDraw = new FlowStream();
 let iFlag = 1;
+let MethaneNumberResult = 100;
 const CanvasLeterColor=[0,0,0];
 const TextColor='White';
 function preload(){
@@ -297,6 +298,7 @@ function TellMeWichScreenAmISeen(){
 }
 function RunGERG2008(){
     UploadTheInputs();
+    MethaneNumberResult = MethaneNumberMWM(x);
     GERG.x = x;
     GERG.CalculateDensity(iFlag);
 }
@@ -374,6 +376,8 @@ function DrawGERGResults(){
         aux=aux+25;
         text('Errors Found: '+ GERG.herr,PositionOfGERGColumn,aux);
     }
+    aux=aux+25;
+    text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfGERGColumn,aux);
     pop();
 }
 function DrawDetailResults(){
