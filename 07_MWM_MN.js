@@ -73,23 +73,23 @@ function ReInitializeValues(){
 }
 function MethaneNumberMWM(x){
     //function MethaneNumberMWM(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
-    Methane = this.x[1]*100;
-    Ethane = this.x[4]*100;
-    Propane = this.x[5]*100;
-    iButane = this.x[6]*100;
-    nButane = this.x[7]*100;
-    ipentane = this.x[8]*100;
-    npentane = this.x[9]*100;
-    Hexanes = this.x[10]*100;
-    Nitrogen = this.x[2]*100;
-    CarbonDioxide = this.x[3]*100;
-    Hydrogen = this.x[15]*100;
-    CarbonMonoxide = this.x[17]*100;
-    Butadiene = 0;
-    Butylene = 0;
-    Ethylene = 0;
-    Propylene = 0;
-    HydrogenSulphide = this.x[19]*100;
+    let Methane = x[1]*100;
+    let Ethane = x[4]*100;
+    let Propane = x[5]*100;
+    let iButane = x[6]*100;
+    let nButane = x[7]*100;
+    let ipentane = x[8]*100;
+    let npentane = x[9]*100;
+    let Hexanes = x[10]*100;
+    let Nitrogen = x[2]*100;
+    let CarbonDioxide = x[3]*100;
+    let Hydrogen = x[15]*100;
+    let CarbonMonoxide = x[17]*100;
+    let Butadiene = 0;
+    let Butylene = 0;
+    let Ethylene = 0;
+    let Propylene = 0;
+    let HydrogenSulphide = x[19]*100;
     //
     let SimplifiedChromatografy;
     let MethaneNumberMWMWithoutInerts;
