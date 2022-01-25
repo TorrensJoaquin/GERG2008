@@ -71,7 +71,26 @@ function ReInitializeValues(){
     NAji=zeros2(12, 19);
     VAji=zeros2(12, 19);
 }
-function MethaneNumberMWM(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
+function MethaneNumberMWM(x){
+    //function MethaneNumberMWM(Methane, Ethane, Propane, iButane, nButane, ipentane, npentane, Hexanes, Nitrogen, CarbonDioxide, Hydrogen, CarbonMonoxide, Butadiene, Butylene, Ethylene, Propylene, HydrogenSulphide){
+    Methane = this.x[1];
+    Ethane = this.x[4];
+    Propane = this.x[5];
+    iButane = this.x[6];
+    nButane = this.x[7];
+    ipentane = this.x[8];
+    npentane = this.x[9];
+    Hexanes = this.x[10];
+    Nitrogen = this.x[2];
+    CarbonDioxide = this.x[3];
+    Hydrogen = this.x[15];
+    CarbonMonoxide = this.x[17];
+    Butadiene = 0;
+    Butylene = 0;
+    Ethylene = 0;
+    Propylene = 0;
+    HydrogenSulphide = this.x[19];
+    //
     let SimplifiedChromatografy;
     let MethaneNumberMWMWithoutInerts;
     UploadTheCoefficients();
