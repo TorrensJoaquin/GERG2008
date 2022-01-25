@@ -80,8 +80,8 @@ function MethaneNumberMWM(x){
     let nButane = x[7]*100;
     let ipentane = x[8]*100;
     let npentane = x[9]*100;
-    let Hexanes = x[10]*100;
-    let Nitrogen = x[2]*100;
+    let Hexanes = (x[10] + x[11] + x[12] + x[14])*100;
+    let Nitrogen = (x[2] + x[16] + x[18] + x[20] + x[21])*100;
     let CarbonDioxide = x[3]*100;
     let Hydrogen = x[15]*100;
     let CarbonMonoxide = x[17]*100;
