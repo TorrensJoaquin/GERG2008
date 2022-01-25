@@ -428,7 +428,7 @@ function DrawDetailResults(){
         text('Errors Found: '+ Detail.herr,PositionOfDetailColumn,aux);
     }
     aux=aux+25;
-    text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfGERGColumn,aux);
+    text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfDetailColumn,aux);
     pop();
     pop();
 }
@@ -463,7 +463,7 @@ function DrawGrossResults(){
         text('Errors Found: '+ GROSS.herr,PositionOfGrossColumn,aux);
     }
     aux=aux+25;
-    text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfGERGColumn,aux);
+    text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfGrossColumn,aux);
     pop();
     pop();
 }
