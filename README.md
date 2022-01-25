@@ -4,4 +4,4 @@ Code written by Eric Lemmon. Posted on the NIST website. But now in JavaScript, 
 Github page in the following link...  
 ## https://torrensjoaquin.github.io/GERG2008/  
 
-## The methane number according to EN16726 is also added as a GERG Result.
+## The methane number according to EN16726 is also added as a result.
