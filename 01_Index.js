@@ -304,6 +304,7 @@ function RunGERG2008(){
 }
 function RunGROSS_Method1(){
     UploadTheInputs();
+    MethaneNumberResult = MethaneNumberMWM(x);
     GROSS.CalculateInputs(GROSS.Temperature,GROSS.Pressure,x);
     GROSS.Pd = GROSS.Pressure;
     GROSS.Hv = GROSS.HN*GROSS.Density;
@@ -311,6 +312,7 @@ function RunGROSS_Method1(){
 }
 function RunGROSS_Method2(){
     UploadTheInputs();
+    MethaneNumberResult = MethaneNumberMWM(x);
     GROSS.CalculateInputs(GROSS.Temperature,GROSS.Pressure,x);
     GROSS.Pd = GROSS.Pressure;
     GROSS.Hv = GROSS.HN*GROSS.Density;
@@ -318,6 +320,7 @@ function RunGROSS_Method2(){
 }
 function RunDetail(){
     UploadTheInputs();
+    MethaneNumberResult = MethaneNumberMWM(x);
     Detail.DensityDetail(Detail.Temperature,Detail.Pressure,x);
     Detail.PropertiesDetail(Detail.Temperature,Detail.Density,x);
 }
@@ -424,6 +427,9 @@ function DrawDetailResults(){
         aux=aux+25;
         text('Errors Found: '+ Detail.herr,PositionOfDetailColumn,aux);
     }
+    aux=aux+25;
+    text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfGERGColumn,aux);
+    pop();
     pop();
 }
 function DrawGrossResults(){
@@ -456,6 +462,9 @@ function DrawGrossResults(){
         aux=aux+25;
         text('Errors Found: '+ GROSS.herr,PositionOfGrossColumn,aux);
     }
+    aux=aux+25;
+    text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfGERGColumn,aux);
+    pop();
     pop();
 }
 function FromXToDOMs(){
