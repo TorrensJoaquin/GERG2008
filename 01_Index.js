@@ -430,7 +430,6 @@ function DrawDetailResults(){
     aux=aux+25;
     text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfDetailColumn,aux);
     pop();
-    pop();
 }
 function DrawGrossResults(){
     let PositionOfGrossColumn=50;
@@ -464,7 +463,6 @@ function DrawGrossResults(){
     }
     aux=aux+25;
     text('The gas methane number is: '+ MethaneNumberResult.toFixed(0),PositionOfGrossColumn,aux);
-    pop();
     pop();
 }
 function FromXToDOMs(){
