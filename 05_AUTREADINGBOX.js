@@ -112,7 +112,7 @@ function generateTable(data) {
         if(data[i][0] == 'C10'){x[14]=x[14]+parseFloat(data[i][1])}
         if(data[i][0] == 'C10H22'){x[14]=x[14]+parseFloat(data[i][1])}
         if(data[i][0] == 'C10H22+'){x[14]=x[14]+parseFloat(data[i][1])}
-        if(data[i][0] == 'DECANO'){x[14]=x[14]+parseFloat(data[i][1])}        
+        if(data[i][0] == 'DECANE'){x[14]=x[14]+parseFloat(data[i][1])}        
 
         //   15 - Hydrogen
         if(data[i][0] == 'H2'){x[15]=x[15]+parseFloat(data[i][1])}
