@@ -30,6 +30,13 @@ function generateTable(data) {
     }
     for(let i=0; i < NumberOfRows; i++){
         data[i][0] = data[i][0].toUpperCase();
+        data[i][0] = data[i][0].replace('[', '');
+        data[i][0] = data[i][0].replace(']', '');
+        data[i][0] = data[i][0].replace('%', '');
+        data[i][0] = data[i][0].replace('PC', '');
+        data[i][0] = data[i][0].replace('_', '');
+        data[i][0] = data[i][0].replace('CROMA', '');
+        data[i][0] = data[i][0].replace('_', '');
         data[i][0] = data[i][0].replace('Á', 'A');
         data[i][0] = data[i][0].replace('É', 'E');
         data[i][0] = data[i][0].replace('Í', 'I');
@@ -70,7 +77,9 @@ function generateTable(data) {
         if(data[i][0] == 'IC4H10'){x[6]=x[6]+parseFloat(data[i][1])}
         if(data[i][0] == 'ISOBUTANE'){x[6]=x[6]+parseFloat(data[i][1])}
         if(data[i][0] == 'ISOBUTANO'){x[6]=x[6]+parseFloat(data[i][1])}
-
+        if(data[i][0] == 'IBUTANE'){x[6]=x[6]+parseFloat(data[i][1])}
+        if(data[i][0] == 'IBUTANO'){x[6]=x[6]+parseFloat(data[i][1])}
+        
         //    7 - n-Butane
         if(data[i][0] == 'NC4'){x[7]=x[7]+parseFloat(data[i][1])}
         if(data[i][0] == 'C4'){x[7]=x[7]+parseFloat(data[i][1])}
@@ -79,6 +88,8 @@ function generateTable(data) {
         if(data[i][0] == 'NORMAL BUTANE'){x[7]=x[7]+parseFloat(data[i][1])}
         if(data[i][0] == 'BUTANE'){x[7]=x[7]+parseFloat(data[i][1])}
         if(data[i][0] == 'BUTANO'){x[7]=x[7]+parseFloat(data[i][1])}
+        if(data[i][0] == 'NBUTANE'){x[7]=x[7]+parseFloat(data[i][1])}
+        if(data[i][0] == 'NBUTANO'){x[7]=x[7]+parseFloat(data[i][1])}
 
         //    8 - Isopentane
         if(data[i][0] == 'IC5'){x[8]=x[8]+parseFloat(data[i][1])}
