@@ -21,6 +21,7 @@ function generateTable(data) {
         for(let j=0; j < NumberOfColumns; j++){
             if(NumberOfColumns != data[i].length){console.log('Error reading the row/column '+ j + 1)}
             data[i][j] = data[i][j].replace(' ', ''); //Delete black spaces if presents.
+            data[i][j] = data[i][j].replace(',', '.'); // Check if work, Javascript only take a dot as decimal
         }
     }
     if (NumberOfColumns != 2 && NumberOfRows !=2){console.log('More than 2 rows/columns detected')} //I need the labels and the rows. if there are more data something must go wrong.
