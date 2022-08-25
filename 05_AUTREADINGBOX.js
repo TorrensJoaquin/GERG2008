@@ -43,34 +43,34 @@ function generateTable(data) {
         data[i][0] = data[i][0].replace('Ó', 'O');
         data[i][0] = data[i][0].replace('Ú', 'U');
         //    1 - Methane
-        if(data[i][0] == 'C1'){x[1]=x[1]+parseFloat(data[i][1])}
-        if(data[i][0] == 'CH4'){x[1]=x[1]+parseFloat(data[i][1])}
-        if(data[i][0] == 'METHANE'){x[1]=x[1]+parseFloat(data[i][1])}
-        if(data[i][0] == 'METANO'){x[1]=x[1]+parseFloat(data[i][1])}
+        if(data[i][0] == 'C1'){x[1]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'CH4'){x[1]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'METHANE'){x[1]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'METANO'){x[1]+=parseFloat(data[i][1])}
 
         //    2 - Nitrogen
-        if(data[i][0] == "N2"){x[2]=x[2]+parseFloat(data[i][1])}
-        if(data[i][0] == "NITROGEN"){x[2]=x[2]+parseFloat(data[i][1])}
-        if(data[i][0] == "NITROGENO"){x[2]=x[2]+parseFloat(data[i][1])}
-        if(data[i][0] == "N"){x[2]=x[2]+parseFloat(data[i][1])}
+        if(data[i][0] == "N2"){x[2]+=parseFloat(data[i][1])}
+        if(data[i][0] == "NITROGEN"){x[2]+=parseFloat(data[i][1])}
+        if(data[i][0] == "NITROGENO"){x[2]+=parseFloat(data[i][1])}
+        if(data[i][0] == "N"){x[2]+=parseFloat(data[i][1])}
 
         //    3 - Carbon dioxide
-        if(data[i][0] == 'CO2'){x[3]=x[3]+parseFloat(data[i][1])}
-        if(data[i][0] == 'CARBON DIOXIDE'){x[3]=x[3]+parseFloat(data[i][1])}
-        if(data[i][0] == 'DIOXIDO DE CARBONO'){x[3]=x[3]+parseFloat(data[i][1])}
-        if(data[i][0] == 'CARBONIC ACID'){x[3]=x[3]+parseFloat(data[i][1])}
+        if(data[i][0] == 'CO2'){x[3]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'CARBON DIOXIDE'){x[3]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'DIOXIDO DE CARBONO'){x[3]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'CARBONIC ACID'){x[3]+=parseFloat(data[i][1])}
 
         //    4 - Ethane
-        if(data[i][0] == 'C2'){x[4]=x[4]+parseFloat(data[i][1])}
-        if(data[i][0] == 'C2H6'){x[4]=x[4]+parseFloat(data[i][1])}
-        if(data[i][0] == 'ETHANE'){x[4]=x[4]+parseFloat(data[i][1])}
-        if(data[i][0] == 'ETANO'){x[4]=x[4]+parseFloat(data[i][1])}
+        if(data[i][0] == 'C2'){x[4]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'C2H6'){x[4]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'ETHANE'){x[4]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'ETANO'){x[4]+=parseFloat(data[i][1])}
 
         //    5 - Propane
-        if(data[i][0] == 'C3'){x[5]=x[5]+parseFloat(data[i][1])}
-        if(data[i][0] == 'C3H8'){x[5]=x[5]+parseFloat(data[i][1])}
-        if(data[i][0] == 'PROPANE'){x[5]=x[5]+parseFloat(data[i][1])}
-        if(data[i][0] == 'PROPANO'){x[5]=x[5]+parseFloat(data[i][1])}
+        if(data[i][0] == 'C3'){x[5]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'C3H8'){x[5]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'PROPANE'){x[5]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'PROPANO'){x[5]+=parseFloat(data[i][1])}
 
         //    6 - Isobutane
         if(data[i][0] == 'IC4'){x[6]+=parseFloat(data[i][1])}
