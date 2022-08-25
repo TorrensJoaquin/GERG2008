@@ -34,7 +34,6 @@ function generateTable(data) {
         data[i][0] = data[i][0].replace('[', '');
         data[i][0] = data[i][0].replace(']', '');
         data[i][0] = data[i][0].replace('%', '');
-        data[i][0] = data[i][0].replace('PC', '');
         data[i][0] = data[i][0].replace('_', '');
         data[i][0] = data[i][0].replace('CROMA', '');
         data[i][0] = data[i][0].replace('_', '');
