@@ -455,8 +455,6 @@ function DrawGrossResults(){
     text('Relative Density: '+ GROSS.Gr.toFixed(3),PositionOfGrossColumn,aux);
     aux=aux+25;
     text('Volumetric Heating Value: '+ GROSS.Hv.toFixed(3) + ' kJ/mol',PositionOfGrossColumn,aux);
-    aux=aux+25;    
-    text('Compressibility Factor: '+ GROSS.CompressibilityFactor.toFixed(2),PositionOfGrossColumn,aux);
     if(GROSS.ierr>0){
         aux=aux+25;
         text('Errors Found: '+ GROSS.herr,PositionOfGrossColumn,aux);
