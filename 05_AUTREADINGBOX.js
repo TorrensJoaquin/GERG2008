@@ -73,12 +73,13 @@ function generateTable(data) {
         if(data[i][0] == 'PROPANO'){x[5]=x[5]+parseFloat(data[i][1])}
 
         //    6 - Isobutane
-        if(data[i][0] == 'IC4'){x[6]=x[6]+parseFloat(data[i][1])}
-        if(data[i][0] == 'IC4H10'){x[6]=x[6]+parseFloat(data[i][1])}
-        if(data[i][0] == 'ISOBUTANE'){x[6]=x[6]+parseFloat(data[i][1])}
-        if(data[i][0] == 'ISOBUTANO'){x[6]=x[6]+parseFloat(data[i][1])}
-        if(data[i][0] == 'IBUTANE'){x[6]=x[6]+parseFloat(data[i][1])}
-        if(data[i][0] == 'IBUTANO'){x[6]=x[6]+parseFloat(data[i][1])}
+        if(data[i][0] == 'IC4'){x[6]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'IC4H10'){x[6]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'C4H10'){x[6]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'ISOBUTANE'){x[6]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'ISOBUTANO'){x[6]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'IBUTANE'){x[6]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'IBUTANO'){x[6]+=parseFloat(data[i][1])}
         
         //    7 - n-Butane
         if(data[i][0] == 'NC4'){x[7]=x[7]+parseFloat(data[i][1])}
@@ -92,10 +93,11 @@ function generateTable(data) {
         if(data[i][0] == 'NBUTANO'){x[7]=x[7]+parseFloat(data[i][1])}
 
         //    8 - Isopentane
-        if(data[i][0] == 'IC5'){x[8]=x[8]+parseFloat(data[i][1])}
-        if(data[i][0] == 'IC5H12'){x[8]=x[8]+parseFloat(data[i][1])}
-        if(data[i][0] == 'ISOPENTANE'){x[8]=x[8]+parseFloat(data[i][1])}
-        if(data[i][0] == 'ISOPENTANO'){x[8]=x[8]+parseFloat(data[i][1])}
+        if(data[i][0] == 'IC5'){x[8]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'IC5H12'){x[8]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'C5H12'){x[8]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'ISOPENTANE'){x[8]+=parseFloat(data[i][1])}
+        if(data[i][0] == 'ISOPENTANO'){x[8]+=parseFloat(data[i][1])}
 
         //    9 - n-Pentane
         if(data[i][0] == 'NC5'){x[9]=x[9]+parseFloat(data[i][1])}
