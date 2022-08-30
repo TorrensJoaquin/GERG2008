@@ -15,56 +15,6 @@ let CheckIfAnImprovementIsDoneInTheLastXMovements;
 let NAji;
 let VAji;
 let SumOfNAjiComponentsInTheTernary;
-function RunTestOfTheAlgortihm(){
-    let Result = MethaneNumberMWM(83.5, 3.47, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0);
-    let RealResult = 90.2;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(82.43, 3, 0.2, 0, 0.27, 0, 0.1, 0, 13, 1, 0, 0, 0, 0, 0, 0, 0);
-    RealResult = 85.03;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(94.68, 3.2, 1.05, 0, 0.47, 0, 0.2, 0, 0.2, 0.2, 0, 0, 0, 0, 0, 0, 0);
-    RealResult = 80.0;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(86.3, 8.7, 1.6, 0, 0.3, 0, 0, 0, 0.8, 2.3, 0, 0, 0, 0, 0, 0, 0);
-    RealResult = 75.03;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(87.34, 7, 2.2, 0, 0.41, 0, 0.11, 0.2, 0.74, 2, 0, 0, 0, 0, 0, 0, 0);
-    RealResult = 70.02;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(84.62, 8, 1.7, 0, 1.47, 0, 0.51, 0, 3.7, 0, 0, 0, 0, 0, 0, 0, 0);
-    RealResult = 65.0;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(85.58, 5.7, 2.1, 0, 0.9, 0, 0.82, 0.6, 0.4, 3.9, 0, 0, 0, 0, 0, 0, 0);
-    RealResult = 59.97;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(15, 5, 5, 0, 5, 0, 0, 0, 0, 0, 70, 0, 0, 0, 0, 0, 0);
-    RealResult = 20.48;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(80, 5, 5, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0);
-    RealResult = 53.2;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(70, 5, 5, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 5, 0);
-    RealResult = 41.25;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(10, 5, 5, 0, 5, 0, 0, 0, 0, 0, 65, 0, 0, 0, 5, 5, 0);
-    RealResult = 19.58;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(65, 5, 5, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 5, 5);
-    RealResult = 35.02;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(5, 5, 5, 0, 5, 0, 0, 0, 0, 0, 50, 20, 0, 0, 5, 5, 0);
-    RealResult = 23.89;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(75, 5, 5, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 5);
-    RealResult = 44.15;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(55, 5, 5, 0, 5, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 10);
-    RealResult = 30.43;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-    Result = MethaneNumberMWM(5, 2, 2, 0, 2, 0, 0, 0, 0, 0, 90, 0, 0, 0, 0, 0, 0);
-    RealResult = 9.73;
-    console.log(Result.toFixed(1) + ' -> ' + RealResult + ' -> difference: ' + (Result - RealResult).toFixed(2));
-}
 function ReInitializeValues(){
     StandardDeviationOfTheSolver = 5;
     CheckIfAnImprovementIsDoneInTheLastXMovements = true;
@@ -218,7 +168,7 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
 }
 function RandomizedNumberWithEvolutiveApproach(x, MinimumNAji, j, i){
     let AuxResult;
-    if (Math.floor(x / 1000) == 0){
+    if (Math.floor(x * 0.001) == 0){
         AuxResult = Math.random() * StandardDeviationOfTheSolver;
     }else{
         AuxResult = Math.random() * StandardDeviationOfTheSolver + MinimumNAji[j][i];
