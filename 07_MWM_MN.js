@@ -103,9 +103,7 @@ function CalculateMethaneNumberMWM(SimplifiedChromatografy){
                 }
                 //console.log ("Iteracion N°: " + x.toString() + " : " + (RangeMinMaxAvgValueOfTheResult[2]).toFixed(3).toString() + " " + RangeMinMaxAvgValueOfTheResult[1].toFixed(3).toString() + " " + RangeMinMaxAvgValueOfTheResult[2].toFixed(3).toString() + "  MN: " + ResultVariable.toFixed(3).toString() + "  Rango: " + RangeMinMaxAvgValueOfTheResult[1].toFixed(2).toString() + " " + StandardDeviationOfTheSolver.toString());
                 WhichCalculatedMethaneNumber = 1;
-                if(RangeMinMaxAvgValueOfTheResult[0] < 0.01){
-                    break;
-                }
+                if(RangeMinMaxAvgValueOfTheResult[0] < 0.01){break}
             }
         }
     }
@@ -116,9 +114,7 @@ function CalculateMethaneNumber(WillWeBeUsingThisTernaryHotOnes, CalculatedMetha
     CalculatedMethaneNumbers[1] = 0;
     for(let i = 0; i < 19; i++){
         if(WillWeBeUsingThisTernaryHotOnes[i]){
-            if(CalculatedMethaneNumbers[1] != 0){
-                CalculatedMethaneNumbers.push(0);
-            }
+            if(CalculatedMethaneNumbers[1] != 0){CalculatedMethaneNumbers.push(0)}
             CalculatedMethaneNumbers[CalculatedMethaneNumbers.length-1] = FunctionA3(i);
         }
     }
@@ -160,9 +156,7 @@ function CalculateVAji(IsThisComponentPresentInThisTernaryHotOnes, SimplifiedChr
     //Calculate VAji
     for(let i = 0; i<19; i++){
         for(let j = 0; j<12; j++){
-            if(NAji[j][i] != 0){
-                VAji[j][i] = NAji[j][i] * 100 / SumOfNAjiComponentsInTheTernary[i];
-            }
+            if(NAji[j][i] != 0){VAji[j][i] = NAji[j][i] * 100 / SumOfNAjiComponentsInTheTernary[i]}
         }
     }
 }
